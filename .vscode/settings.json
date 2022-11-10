@@ -1,0 +1,5 @@
+{
+  "cmake.buildDirectory": "${workspaceFolder}/cmake-build-debug",
+  "cmake.configureOnOpen": true,
+  "cmake.copyCompileCommands": "${workspaceRoot}/compile_commands.json"
+}

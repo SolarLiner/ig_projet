@@ -8,7 +8,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "Debug",
-      "program": "${workspaceFolder}/build/ig_projet",
+      "program": "${workspaceFolder}/cmake-build-debug/ig_projet",
       "args": ["suzanne.obj"],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "CMake: build"
