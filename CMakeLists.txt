@@ -13,16 +13,20 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-    polyscope
-    GIT_REPOSITORY https://github.com/nmwsharp/polyscope.git
-    GIT_TAG v1.3.0
-)
-
-FetchContent_Declare(
         glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
         GIT_TAG 0.9.9.8
 )
-FetchContent_MakeAvailable(openmesh polyscope glm)
+FetchContent_Declare(
+        SFML
+        GIT_REPOSITORY https://github.com/SFML/SFML.git
+        GIT_TAG 2.5.1
+)
+FetchContent_Declare(
+        EnTT
+        GIT_REPOSITORY https://github.com/skypjack/entt.git
+        GIT_TAG v3.11.0
+)
+FetchContent_MakeAvailable(openmesh glm SFML EnTT)
 
 add_subdirectory(src)
