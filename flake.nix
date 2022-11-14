@@ -8,6 +8,15 @@
   outputs = { self, nixpkgs, flake-utils }: with flake-utils.lib; eachDefaultSystem (system:
     let
       pkgs = import nixpkgs { inherit system; };
+      libPath = with pkgs; lib.makeLibraryPath [
+          libGL
+          libxkbcommon
+          wayland
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXi
+          xorg.libXrandr
+        ];
       openmesh = with pkgs; stdenv.mkDerivation rec {
         pname = "openmesh";
         version = "9.0";
@@ -17,33 +26,38 @@
         };
         nativeBuildInputs = [ cmake ninja ];
       };
-      openflipper = { stdenv, cmake, ninja, qtbase, qwt, qtxmlpatterns, qtx11extras, qtscript }: stdenv.mkDerivation rec {
-        pname = "openflipper";
-        version = "4.1";
-        src = builtins.fetchurl {
-          url = "https://www.graphics.rwth-aachen.de/media/openflipper_static/Releases/4.1/OpenFlipper-4.1.tar.gz";
-          sha256 = "sha256:1mdk6lxhngpvzv7snx3y6iwv0xq7m919v8psqxvf4clcxnalqvkp";
+      entt = pkgs.entt.overrideAttrs (_: _: rec {
+        version = "3.11.0";
+        src = pkgs.fetchFromGitHub {
+          owner = "skypjack";
+          repo = "entt";
+          rev = "v${version}";
+          sha256 = "sha256-urB1oU4Riuo9+DKmMf317bqF4hTcm/zsSLn5fpZY27o=";
         };
-        dontWrapQtApps = true;
-        buildInputs = [ openmesh qtbase qwt qtxmlpatterns qtx11extras qtscript ];
-        nativeBuildInputs = [ cmake ninja ];
-      };
-      ig-projet = { stdenv, lib, cmake, ninja, openflipper, wrapQtAppsHook }: stdenv.mkDerivation {
+      });
+      ig-projet = with pkgs; stdenv.mkDerivation {
         pname = "ig-projet";
         version = "master";
         src = ./.;
-        buildInputs = [ openmesh openflipper ];
-        nativeBuildInputs = [ cmake ninja wrapQtAppsHook ];
+        buildInputs = [ mesa libGL openmesh sfml glm entt ];
+        nativeBuildInputs = [ cmake ninja makeWrapper ];
+        postInstall = ''
+          wrapProgram "$out/bin/ig_projet" --prefix LD_LIBRARY_PATH : "${libPath}"
+        '';
       };
     in
     rec {
       packages.openmesh = openmesh;
-      packages.openflipper = pkgs.libsForQt5.callPackage openflipper { stdenv = pkgs.clangStdenv; };
-      packages.ig-projet = pkgs.libsForQt5.callPackage ig-projet { stdenv = pkgs.clangStdenv; openflipper = packages.openflipper; };
+      packages.ig-projet = ig-projet;
+      packages.entt = entt;
       packages.default = packages.ig-projet;
 
       apps.ig-projet = mkApp { drv = packages.default; };
       apps.default = apps.ig-projet;
+      devShell = with pkgs; mkShell {
+        buildInputs = [ cmake ninja openmesh entt sfml clang clang-tools mesa libGL ];
+        LD_LIBRARY_PATH = libPath;
+      };
     }
   );
 }
