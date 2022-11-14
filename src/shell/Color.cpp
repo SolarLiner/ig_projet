@@ -4,7 +4,7 @@
 
 #include "Color.h"
 
-namespace shell::gl {
+namespace shell {
     const Color Color::Black{};
     const Color Color::White{1.f, 1.f, 1.f};
     const Color Color::Red{1.f};

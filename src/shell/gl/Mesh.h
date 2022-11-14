@@ -6,6 +6,7 @@
 #define IG_PROJET_SHELL_MESH_H
 
 #include "../../base/Mesh.h"
+#include "../Color.h"
 #include "resource/buffers/IndexBuffer.h"
 #include "resource/buffers/VertexArray.h"
 #include "resource/buffers/VertexBuffer.h"
@@ -68,7 +69,7 @@ namespace shell::gl {
         void draw(bool wireframe = false) const {
             vao.bind();
             if(ibo.size() == 0 || vbo.size() == 0) return; // Do nothing if no data has been uploaded yet
-            glPolygonMode(GL_FRONT, wireframe ? GL_LINE : GL_FILL);
+            glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
             glDrawElements(GL_TRIANGLES, (GLsizei)ibo.size(), GL_UNSIGNED_INT, nullptr);
         }
     };

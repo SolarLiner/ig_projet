@@ -3,12 +3,14 @@
 //
 
 #include "Renderer.h"
-#include "Camera.h"
-#include "ClearColor.h"
-#include "Mesh.h"
-#include "Transform.h"
-#include "resource/shaders/Program.h"
-#include <glm/gtx/string_cast.hpp>
+#include "Color.h"
+#include "gl/Camera.h"
+#include "gl/ClearColor.h"
+#include "gl/Mesh.h"
+#include "gl/ProgramRef.h"
+#include "gl/Transform.h"
+#include "gl/resource/shaders/Program.h"
+#include "glm/gtx/string_cast.hpp"
 
 static void set_size(GLint w, GLint h) { glViewport(0, 0, w, h); }
 static void set_size(unsigned int w, unsigned int h) { set_size((GLint) w, (GLint) h); }
@@ -26,23 +28,22 @@ namespace shell::gl {
         camera.resize(size.x, size.y);
 
         glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glFrontFace(GL_CCW);
-        glDepthFunc(GL_LESS);
-        glDepthMask(GL_TRUE);
     }
 
     void Renderer::operator()(const sf::Window &window, entt::registry &registry) {
-        auto camera = registry.ctx().get<Camera>();
+        auto &camera = registry.ctx().get<Camera>();
         Color clear_color;
         if (registry.ctx().contains<ClearColor>()) clear_color = registry.ctx().get<ClearColor>().color;
         else
             clear_color = registry.ctx().insert_or_assign(ClearColor{Color::Black}).color;
-        auto drawables = registry.view<const Transform, const Mesh, const Program>();
+        auto drawables = registry.view<const Transform, const Mesh, const ProgramRef>();
 
         if (size_changed) {
-            std::cout << "Size changed " << glm::to_string(*size_changed) << std::endl;
             camera.resize(size_changed->x, size_changed->y);
             set_size(*size_changed);
             size_changed.reset();
@@ -53,12 +54,13 @@ namespace shell::gl {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (auto [_, model, mesh, material]: drawables.each()) {
-            material.use();
-            material.set_uniform("model", model.matrix);
-            material.set_uniform("view", camera.view());
-            material.set_uniform("projection", camera.projection());
-            mesh.draw();
+        for (auto [entity, model, mesh, material]: drawables.each()) {
+            const auto &program = material.get_program();
+            program.use();
+            program.set_uniform("model", model.matrix);
+            program.set_uniform("view", camera.view());
+            program.set_uniform("projection", camera.projection());
+            mesh.draw(registry.any_of<wireframe>(entity));
         }
 
         const_cast<sf::Window &>(window).display();
