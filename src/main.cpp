@@ -1,57 +1,65 @@
-#include "SFML/Window/Keyboard.hpp"
-#if 0
 #include "base/Mesh.h"
-#include "transforms/Laplace.h"
-
-int main(int argc, char **argv) {
-    transforms::Laplace transform(0.5);
-    polyscope::init();
-
-//    auto mesh = cube<PolyscopeMesh>();
-    auto mesh = Mesh::open("suzanne.obj");
-    auto p_input = mesh.show("Suzanne");
-
-    transform.smoothen(mesh);
-    auto p_smooth = mesh.show("laplace iter 1");
-
-    int i = 1;
-    for (; i < 10; ++i) transform.smoothen(mesh);
-    auto p_smoother = mesh.show("laplace iter 10");
-
-    for (; i < 100; ++i) transform.smoothen(mesh);
-    auto p_smoother_still = mesh.show("laplace iter 100");
-
-    polyscope::show();
-
-    return 0;
-}
-#else
-#include "renderer/Shell.h"
+#include "shell/EventListener.h"
+#include "shell/Shell.h"
+#include "shell/events.h"
+#include "shell/gl/Camera.h"
+#include "shell/gl/Mesh.h"
+#include "shell/gl/Renderer.h"
+#include "shell/gl/Transform.h"
+#include "shell/gl/resource/shaders/Program.h"
+#include "shell/gl/resource/shaders/Shader.h"
+#include <filesystem>
 #include <iostream>
-#include <memory>
+#include <string>
+#include <glm/gtx/string_cast.hpp>
 
-using renderer::Shell;
+using namespace shell;
+using namespace shell::gl;
+using namespace shell::gl::resource;
 using Key = sf::Keyboard::Key;
+namespace fs = std::filesystem;
+using glm::vec3;
+using glm::vec4;
+using glm::mat4;
+using glm::quat;
 
-class EscapeExit: public renderer::System {
-    public:
-        void before_run(entt::registry &registry) override {
-            dispatcher = &registry.ctx().get<entt::dispatcher>();
-            dispatcher->sink<renderer::events::KeyboardEvent>().connect<&EscapeExit::on_key_pressed>(*this);
-        }
+void quit_on_escape(entt::registry &reg, events::KeyboardEvent event) {
+    if (event.key == Key::Escape) reg.ctx().template get<entt::dispatcher>().template enqueue<events::Close>();
+}
 
-    private:
-        void on_key_pressed(renderer::events::KeyboardEvent event) {
-            if(event.key == Key::Escape) dispatcher->enqueue<renderer::events::Close>();
-        }
+const vec3 base_cam_pos{0.f, 1.f, 3.f};
 
-        entt::dispatcher *dispatcher;
-};
-
-int main(int argc, char **argv) {
+int main() {
     Shell shell;
-    shell.add_system(new EscapeExit());
+    Shader vs(Shader::Type::Vertex, fs::path("resources/shader.vert"));
+    Shader fs(Shader::Type::Fragment, fs::path("resources/shader.frag"));
+    base::Mesh openmesh = base::Mesh::open("suzanne.obj");
+
+    auto mesh_entity = shell.registry.create();
+    auto &gl_mesh = shell.registry.emplace<Mesh>(mesh_entity);
+    auto &shader = shell.registry.emplace<Program>(mesh_entity);
+    auto &transform = shell.registry.emplace<Transform>(mesh_entity);
+    gl_mesh.update_from_openmesh(openmesh);
+    shader.add_shader(vs);
+    shader.add_shader(fs);
+    shader.link();
+
+    auto &camera = shell.registry.ctx().emplace<Camera>();
+    camera.fov = 1.f;
+    camera.view() = glm::lookAt(base_cam_pos, vec3(0), vec3(0, 1, 0));
+
+    auto start = std::chrono::steady_clock::now();
+    shell.registry.ctx().insert_or_assign(ClearColor{Color(0.1f, 0.1f, 0.1f)});
+    shell.add_system(new EventListener<events::KeyboardEvent>(quit_on_escape));
+    shell.add_system([start](const auto &, entt::registry &registry) {
+        Camera &camera = registry.ctx().get<Camera>();
+        auto now = std::chrono::steady_clock::now();
+        std::chrono::duration<float> elapsed = now - start;
+        auto angle = elapsed.count();
+        vec3 p = glm::angleAxis(angle, vec3(0, 1, 0)) * base_cam_pos;
+        std::cout << glm::to_string(p) << std::endl;
+        camera.view() = glm::lookAt(p, vec3(0), vec3(0, 1, 0));
+    });
+    shell.add_system(new Renderer());
     shell.run();
 }
-
-#endif
