@@ -5,7 +5,7 @@
 #ifndef IG_PROJET_VERTEX_H
 #define IG_PROJET_VERTEX_H
 
-#include "../../Color.h"
+#include "../../../Color.h"
 #include "glm/glm.hpp"
 
 namespace shell::gl::resource {

@@ -5,17 +5,18 @@
 #ifndef IG_PROJET_RENDERER_H
 #define IG_PROJET_RENDERER_H
 
-#include "../System.h"
-#include "../events.h"
-#include "ClearColor.h"
 #include "Color.h"
+#include "SFML/Graphics.hpp"
+#include "System.h"
+#include "events.h"
+#include "gl/ClearColor.h"
+#include "glad.h"
 #include "glm/vec2.hpp"
-#include <SFML/Graphics.hpp>
-#include <glad.h>
 
 namespace shell::gl {
     class Renderer : public shell::System {
     public:
+        struct wireframe {};
         void before_run(const sf::Window &window, entt::registry &) override;
         void operator()(const sf::Window &, entt::registry &) override;
         void handle_resize(events::Resize resize);

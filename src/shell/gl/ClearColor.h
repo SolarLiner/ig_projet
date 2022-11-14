@@ -5,14 +5,12 @@
 #ifndef IG_PROJET_CLEARCOLOR_H
 #define IG_PROJET_CLEARCOLOR_H
 
-#include "Color.h"
+#include "../Color.h"
 
-namespace shell {
-    namespace gl {
-        struct ClearColor {
-            Color color = Color::Black;
-        };
-    }// namespace gl
-}// namespace shell
+namespace shell::gl {
+    struct ClearColor {
+        Color color = Color::Black;
+    };
+}// namespace shell::gl
 
 #endif//IG_PROJET_CLEARCOLOR_H
