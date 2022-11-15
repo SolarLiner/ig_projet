@@ -12,6 +12,7 @@ layout(std140) uniform Camera {
 uniform mat4 model;
 
 out Fragment {
+    vec3 pos;
     vec3 normal;
     vec2 uv;
     vec3 vcolor;
@@ -21,10 +22,12 @@ out Fragment {
 void main()
 {
     mat4 mvp = projection * view * model;
+    vec4 w4 = model * vec4(position, 1);
+    frag.pos = w4.xyz / w4.w;
     frag.normal = (model * vec4(normal, 0)).xyz;
     frag.uv = uv;
     frag.vcolor = vcolor;
     frag.weight = weight;
-    gl_Position = mvp * vec4(position.x, position.y, position.z, 1.0);
+    gl_Position = mvp * vec4(position, 1);
 }
 

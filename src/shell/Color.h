@@ -47,6 +47,7 @@ namespace shell {
         }
 
         float r, g, b, a;
+        Color with_alpha(float alpha) const;
     };
 }// namespace shell
 

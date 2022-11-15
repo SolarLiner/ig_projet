@@ -11,4 +11,5 @@ namespace shell {
     const Color Color::Green{0.f, 1.f};
     const Color Color::Blue{0.f, 0.f, 1.f};
     const Color Color::Transparent{0.f, 0.f, 0.f, 1.f};
-}// namespace shell::gl
+    Color Color::with_alpha(float alpha) const { return Color(r, g, b, alpha); }
+}// namespace shell
