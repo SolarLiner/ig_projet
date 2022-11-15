@@ -10,7 +10,7 @@
 
 namespace shell::gl::resource {
     template<BufferDraw Draw = Static>
-    class VertexBuffer : public Buffer<Vertex, Array, Draw> {};
+    using VertexBuffer = Buffer<Vertex, Array, Draw>;
 }// namespace shell::gl::resource
 
 #endif//IG_PROJET_VERTEXBUFFER_H

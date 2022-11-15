@@ -5,6 +5,7 @@
 #ifndef IG_PROJET_PROGRAM_H
 #define IG_PROJET_PROGRAM_H
 
+#include "../buffers/UniformBuffer.h"
 #include "../Resource.h"
 #include "Shader.h"
 #include "ShaderException.h"
@@ -29,6 +30,10 @@ namespace shell::gl::resource {
             set_uniform_at(glGetUniformLocation(id, name.c_str()), value);
         }
 
+        void set_uniform_block(const std::string &name, size_t binding) const {
+            set_uniform_block_at(glGetUniformBlockIndex(id, name.c_str()), binding);
+        }
+
         [[nodiscard]] bool linked() const;
         [[nodiscard]] std::string info_log() const;
         [[nodiscard]] bool valid() const { return has_shaders && linked(); }
@@ -38,6 +43,10 @@ namespace shell::gl::resource {
     private:
         template<typename T>
         void set_uniform_at(GLint, T) const {}
+
+        void set_uniform_block_at(GLuint bid, size_t binding) const {
+            glUniformBlockBinding(id, bid, binding);
+        }
 
         template<int dim, typename T, glm::qualifier Q>
         void set_uniform_at(GLint, glm::vec<dim, T, Q>) const {};
