@@ -9,8 +9,7 @@
 
 namespace shell::gl::resource {
     template<BufferDraw Draw = Static>
-    class IndexBuffer : public Buffer<GLuint, ElementArray, Draw> {
-    };
+    using IndexBuffer = Buffer<GLuint, ElementArray, Draw>;
 }// namespace shell::gl::resource
 
 #endif//IG_PROJET_INDEXBUFFER_H

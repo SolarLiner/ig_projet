@@ -3,9 +3,9 @@
 //
 
 #include "Shell.h"
-#include <iostream>
-#include <cstdarg>
 #include <chrono>
+#include <cstdarg>
+#include <iostream>
 
 /*
 void debug_callback(const char* mesg, void*, int nargs, ...) {
@@ -31,7 +31,8 @@ static sf::ContextSettings default_context() {
 }
 
 namespace shell {
-    Shell::Shell(size_t w, size_t h, const std::string &win_name) : window(sf::VideoMode(w, h), win_name, sf::Style::Default, default_context()) {
+    Shell::Shell(size_t w, size_t h, const std::string &win_name)
+        : window(sf::VideoMode(w, h), win_name, sf::Style::Default, default_context()) {
         auto &dispatcher = registry.ctx().emplace<entt::dispatcher>();
         dispatcher.sink<events::Close>().connect<&Shell::on_close_requested>(*this);
         gladLoadGLLoader(reinterpret_cast<GLADloadproc>(sf::Context::getFunction));
@@ -41,23 +42,22 @@ namespace shell {
         auto &dispatcher = registry.ctx().get<entt::dispatcher>();
         window.setVerticalSyncEnabled(true);
 
-        for(auto &system: systems) {
-            system->before_run(window, registry);
-        }
+        for (auto &system: systems) { system->before_run(window, registry); }
 
         sf::Clock elapsed;
         sf::Clock last_frame;
         while (window.isOpen()) {
             poll_events(dispatcher);
-            for(auto &system: systems) (*system)(window, registry);
+            for (auto &system: systems) (*system)(window, registry);
             dispatcher.update();
+            last_frame.restart();
         }
         exit(0);
     }
     void Shell::poll_events(entt::dispatcher &dispatcher) {
         sf::Event event;
         while (window.pollEvent(event)) {
-            switch(event.type) {
+            switch (event.type) {
                 case sf::Event::Closed:
                     dispatcher.enqueue<events::Close>();
                     break;
@@ -70,12 +70,25 @@ namespace shell {
                 case sf::Event::KeyReleased:
                     dispatcher.enqueue<events::KeyboardEvent>(event.key.code, false);
                     break;
-                default: break;
+                case sf::Event::MouseMoved:
+                    dispatcher.enqueue<events::MouseMove>(glm::vec2(event.mouseMove.x, event.mouseMove.y));
+                    break;
+                case sf::Event::MouseButtonPressed:
+                    dispatcher.enqueue<events::MouseButton>(true, event.mouseButton.button,
+                                                            glm::vec2(event.mouseButton.x, event.mouseButton.y));
+                    break;
+                case sf::Event::MouseButtonReleased:
+                    dispatcher.enqueue<events::MouseButton>(false, event.mouseButton.button,
+                                                            glm::vec2(event.mouseButton.x, event.mouseButton.y));
+                case sf::Event::MouseWheelScrolled:
+                    if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
+                        dispatcher.enqueue<events::ScrollWheel>(event.mouseWheelScroll.delta);
+                    break;
+                default:
+                    break;
             }
         }
     }
 
-    void Shell::on_close_requested(events::Close) {
-        window.close();
-    }
-}
+    void Shell::on_close_requested(events::Close) { window.close(); }
+}// namespace shell

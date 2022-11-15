@@ -6,7 +6,7 @@
 #define IG_PROJET_SHELL_H
 
 #include "Color.h"
-#include "System.h"
+#include "systems/System.h"
 #include "events.h"
 #include "gl/Camera.h"
 #include "gl/ClearColor.h"
@@ -25,12 +25,12 @@ namespace shell {
 
         Shell(size_t w, size_t h, const std::string &win_name = "Not Polyscope");
 
-        void add_system(FunctionSystem::system_t system) {
-            add_system(new FunctionSystem(std::move(system)));
+        void add_system(systems::FunctionSystem::system_t system) {
+            add_system(new systems::FunctionSystem(std::move(system)));
         }
 
 
-        void add_system(System *system) {
+        void add_system(systems::System *system) {
             systems.emplace_back(system);
         }
 
@@ -49,7 +49,7 @@ namespace shell {
         void on_close_requested(events::Close event);
 
         sf::Window window;
-        std::list<std::unique_ptr<System>> systems;
+        std::list<std::unique_ptr<systems::System>> systems;
         void poll_events(entt::dispatcher &dispatcher);
     };
 }// namespace shell

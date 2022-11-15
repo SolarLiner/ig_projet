@@ -7,14 +7,14 @@
 
 #include "Color.h"
 #include "SFML/Graphics.hpp"
-#include "System.h"
 #include "events.h"
 #include "gl/ClearColor.h"
 #include "glad.h"
 #include "glm/vec2.hpp"
+#include "systems/System.h"
 
 namespace shell::gl {
-    class Renderer : public shell::System {
+    class Renderer : public shell::systems::System {
     public:
         struct wireframe {};
         void before_run(const sf::Window &window, entt::registry &) override;

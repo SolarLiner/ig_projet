@@ -25,7 +25,7 @@ namespace shell::gl {
         auto &camera = registry.ctx().get<Camera>();
         auto size = window.getSize();
         set_size(size);
-        camera.resize(size.x, size.y);
+        camera.resize(glm::vec2(size.x, size.y));
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -44,7 +44,7 @@ namespace shell::gl {
         auto drawables = registry.view<const Transform, const Mesh, const ProgramRef>();
 
         if (size_changed) {
-            camera.resize(size_changed->x, size_changed->y);
+            camera.resize(*size_changed);
             set_size(*size_changed);
             size_changed.reset();
         }
@@ -58,8 +58,6 @@ namespace shell::gl {
             const auto &program = material.get_program();
             program.use();
             program.set_uniform("model", model.matrix);
-            program.set_uniform("view", camera.view());
-            program.set_uniform("projection", camera.projection());
             mesh.draw(registry.any_of<wireframe>(entity));
         }
 

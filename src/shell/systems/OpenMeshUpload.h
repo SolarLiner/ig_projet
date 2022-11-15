@@ -5,12 +5,12 @@
 #ifndef IG_PROJET_OPENMESHUPLOAD_H
 #define IG_PROJET_OPENMESHUPLOAD_H
 
-#include "../base/Mesh.h"
+#include "../../base/Mesh.h"
+#include "../gl/Mesh.h"
+#include "../gl/ProgramRef.h"
+#include "../gl/resource/shaders/Program.h"
+#include "../gl/resource/shaders/Shader.h"
 #include "System.h"
-#include "gl/Mesh.h"
-#include "gl/ProgramRef.h"
-#include "gl/resource/shaders/Program.h"
-#include "gl/resource/shaders/Shader.h"
 #include <filesystem>
 
 namespace shell {
@@ -27,9 +27,14 @@ namespace shell {
                 : OpenMeshUpload(shaders_dir / "shader.vert", shaders_dir / "shader.frag") {}
 
             void before_run(const sf::Window &window, entt::registry &registry) override {
+                constexpr size_t CAMERA_BINDING = 0;
                 registry.on_construct<base::Mesh>().connect<&OpenMeshUpload::handle_upload_mesh>(*this);
                 registry.on_update<base::Mesh>().connect<&OpenMeshUpload::handle_upload_mesh>(*this);
                 registry.on_destroy<base::Mesh>().connect<&OpenMeshUpload::handle_destroy_mesh>();
+
+                auto &camera = registry.ctx().get<gl::Camera>();
+                camera.bind_to(CAMERA_BINDING);
+                program_ref.get_program().set_uniform_block("Camera", CAMERA_BINDING);
 
                 auto view = registry.view<const base::Mesh>(entt::exclude<gl::Mesh>);
                 for (auto [entity, base_mesh]: view.each()) { handle_upload_mesh(registry, entity); }
