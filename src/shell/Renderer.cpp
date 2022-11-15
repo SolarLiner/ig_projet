@@ -4,6 +4,9 @@
 
 #include "Renderer.h"
 #include "Color.h"
+#include "UniformBindings.h"
+#include "components/Light.h"
+#include "components/PanOrbitCamera.h"
 #include "gl/Camera.h"
 #include "gl/ClearColor.h"
 #include "gl/Mesh.h"
@@ -33,10 +36,13 @@ namespace shell::gl {
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glFrontFace(GL_CCW);
+
+        lights.bind_to(UniformBindings::Lights);
     }
 
     void Renderer::operator()(const sf::Window &window, entt::registry &registry) {
         auto &camera = registry.ctx().get<Camera>();
+        auto &controller = registry.ctx().get<components::PanOrbitCamera>();
         Color clear_color;
         if (registry.ctx().contains<ClearColor>()) clear_color = registry.ctx().get<ClearColor>().color;
         else
@@ -49,6 +55,17 @@ namespace shell::gl {
             size_changed.reset();
         }
 
+        {
+            auto view = registry.view<components::Light>();
+            auto map = lights.map(resource::Write);
+            auto it = view.begin();
+            int i = 0;
+            for(; i < Lights::MAX_LIGHTS && it != view.end(); ++i, ++it) {
+                map[0].lights[i] = registry.get<components::Light>(*it);
+            }
+            map[0].num_lights = i;
+        }
+
         glClearColor(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
         glClearDepth(1.f);
 
@@ -57,6 +74,7 @@ namespace shell::gl {
         for (auto [entity, model, mesh, material]: drawables.each()) {
             const auto &program = material.get_program();
             program.use();
+            program.set_uniform("cam_pos", controller.eye);
             program.set_uniform("model", model.matrix);
             mesh.draw(registry.any_of<wireframe>(entity));
         }

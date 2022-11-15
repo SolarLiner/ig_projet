@@ -9,20 +9,24 @@
 #include "glm/glm.hpp"
 
 namespace shell::components {
+    using glm::quat;
     using glm::vec2;
     using glm::vec3;
     using glm::vec4;
-    using glm::quat;
+
+    static vec3 transform_point(mat4 transform, vec3 point) {
+        vec4 w = transform * vec4(point, 1);
+        return vec3(w) / w.w;
+    }
 
     class PanOrbitCamera {
     public:
-        explicit PanOrbitCamera(vec3 eye = vec3(0, 1, -2), vec3 target = vec3(0)): eye(eye), target(target), sensitivity(5), zoom_sensitivity(0.03f) {}
+        explicit PanOrbitCamera(vec3 eye = vec3(0, 1, 2), vec3 target = vec3(0))
+            : eye(eye), target(target), sensitivity(10), zoom_sensitivity(0.1f) {}
         vec3 eye, target;
         float sensitivity, zoom_sensitivity;
 
-        void update(gl::Camera &camera) {
-            camera.set_view(view());
-        }
+        void update(gl::Camera &camera) { camera.set_view(view()); }
 
         void zoom(float amount) {
             vec3 dir = glm::normalize(target - eye);
@@ -30,8 +34,11 @@ namespace shell::components {
         }
 
         void pan(vec2 hv) {
+            mat4 v = glm::inverse(view());
+            vec3 vx = transform_point(v, vec3(0, -1, 0));
+            vec3 vy = transform_point(v, vec3(-1, 0, 0));
             hv *= sensitivity;
-            quat r = glm::angleAxis(hv.x, vec3(0, -1, 0)) * glm::angleAxis(hv.y, vec3(-1, 0, 0));
+            quat r = glm::angleAxis(hv.x, vx) * glm::angleAxis(hv.y, vy);
             eye = r * eye;
         }
 
@@ -42,14 +49,12 @@ namespace shell::components {
 
         void translate(vec2 screen_space) {
             mat4 v = glm::inverse(view());
-            vec4 w4 = v * vec4 (screen_space, 0, 1);
-            vec3 world_space(vec3(w4) / w4.z);
-            translate(world_space);
+            translate(transform_point(v, vec3(screen_space, 0)));
         }
 
     private:
         [[nodiscard]] glm::mat4 view() const { return glm::lookAt(eye, target, vec3(0, 1, 0)); }
     };
-}// namespace shell::system
+}// namespace shell::components
 
 #endif//IG_PROJET_PANORBITCAMERA_H
