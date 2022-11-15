@@ -49,11 +49,14 @@ namespace shell::gl {
         void bind_to(size_t binding) { buffer.bind_to(binding); }
 
         void update_projection() {
-            buffer.set_at(0, offsetof(matrices, projection),
-                          glm::value_ptr(glm::perspective(fov, aspect, znear, zfar)), 16);
+            auto map = buffer.map(resource::Write);
+            map[0].update_projection(glm::perspective(fov, aspect, znear, zfar));
         }
 
-        void update_view() { buffer.set_at(0, offsetof(matrices, view), glm::value_ptr(_view), 16); }
+        void update_view() {
+            auto map = buffer.map(resource::Write);
+            map[0].update_view(_view);
+        }
 
         void update() {
             buffer.set(0, matrices(_view, glm::perspective(fov, aspect, znear, zfar)));
@@ -69,14 +72,25 @@ namespace shell::gl {
         glm::mat4 _view;
 
         struct matrices {
-            matrices(glm::mat4 view, glm::mat4 projection) {
-                auto pview = glm::value_ptr(view);
-                auto pproj = glm::value_ptr(projection);
+            matrices(glm::mat4 view, glm::mat4 projection): view(), projection() {
+                update_view(view);
+                update_projection(projection);
+            }
+
+            void update_view(glm::mat4 view) {
+                auto p = glm::value_ptr(view);
                 for(int i = 0; i < 16; ++i) {
-                    this->view[i] = pview[i];
-                    this->projection[i] = pproj[i];
+                    this->view[i] = p[i];
                 }
             }
+
+            void update_projection(glm::mat4 projection) {
+                auto p = glm::value_ptr(projection);
+                for(int i = 0; i < 16; ++i) {
+                    this->projection[i] = p[i];
+                }
+            }
+
             float view[16];
             float projection[16];
         };

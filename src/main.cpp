@@ -3,15 +3,11 @@
 #include "shell/Shell.h"
 #include "shell/events.h"
 #include "shell/gl/Camera.h"
-#include "shell/gl/Mesh.h"
 #include "shell/gl/Transform.h"
 #include "shell/systems/EventListener.h"
 #include "shell/systems/OpenMeshUpload.h"
 #include "shell/systems/PanOrbitSystem.h"
-#include "transforms/Laplace.h"
 #include <filesystem>
-#include <glm/gtx/string_cast.hpp>
-#include <iostream>
 #include <string>
 
 using namespace shell;

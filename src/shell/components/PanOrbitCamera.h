@@ -31,7 +31,7 @@ namespace shell::components {
 
         void pan(vec2 hv) {
             hv *= sensitivity;
-            quat r = glm::angleAxis(hv.x, vec3(0, 1, 0)) * glm::angleAxis(hv.y, vec3(-1, 0, 0));
+            quat r = glm::angleAxis(hv.x, vec3(0, -1, 0)) * glm::angleAxis(hv.y, vec3(-1, 0, 0));
             eye = r * eye;
         }
 
