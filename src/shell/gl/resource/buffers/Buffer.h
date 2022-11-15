@@ -20,11 +20,41 @@ namespace shell::gl::resource {
         Stream = GL_STREAM_DRAW,
         Dynamic = GL_DYNAMIC_DRAW,
     };
+    enum BufferMapping {
+        Read = GL_READ_ONLY,
+        Write = GL_WRITE_ONLY,
+    };
     template<typename T, BufferType Type, BufferDraw Draw = Static>
     class Buffer : Resource {
         static_assert(!std::is_pointer_v<T>);
     public:
+        struct Map {
+            Map(std::span<T> data, const Buffer<T, Type, Draw> &buffer): ptr(data), buf(buffer) {}
+
+            ~Map() {
+                glUnmapBuffer(Type);
+                buf.unbind();
+            }
+
+            std::span<T> &operator*() {
+                return ptr;
+            }
+
+            T &operator[](size_t ix) {
+                return ptr[ix];
+            }
+
+            std::span<T> ptr;
+        private:
+            const Buffer<T, Type, Draw> &buf;
+        };
         Buffer() : Resource() { glGenBuffers(1, &id); }
+
+        Buffer(const Buffer &buffer, size_t start = 0, size_t end = 0): Buffer() {
+            glBindBuffer(GL_COPY_READ_BUFFER, (GLuint) buffer);
+            glBindBuffer(GL_COPY_WRITE_BUFFER, id);
+            glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, (GLintptr)start, (GLintptr) end, buffer.bytes());
+        }
 
         Buffer(size_t length) : Buffer() {
             bind();
@@ -66,6 +96,12 @@ namespace shell::gl::resource {
             bind();
             glBufferSubData(Type, ix * elsize + offset, sizeof(std::remove_pointer_t<V>) * len, data);
             unbind();
+        }
+
+        Map map(BufferMapping mapping) {
+            bind();
+            auto data = glMapBuffer(Type, mapping);
+            return {std::span((T*)data, length), *this};
         }
 
         explicit operator GLuint() const override { return id; }
