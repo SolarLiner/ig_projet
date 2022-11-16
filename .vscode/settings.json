@@ -2,4 +2,8 @@
   "cmake.buildDirectory": "${workspaceFolder}/cmake-build-vscode",
   "cmake.configureOnOpen": true,
   "cmake.copyCompileCommands": "${workspaceRoot}/compile_commands.json",
+  "cmake.buildTask": true,
+  "cmake.configureArgs": [
+    "-DDEBUG_OPENGL=ON"
+  ],
 }

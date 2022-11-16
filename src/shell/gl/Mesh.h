@@ -64,6 +64,14 @@ namespace shell::gl {
 
             ibo.upload(indices);
             vbo.upload(vertices);
+
+            // Rebind arrays because re-uploading data makes the VAO lose its bindings
+            vao.bind();
+            ibo.bind();
+            vbo.bind();
+            vao.unbind();
+            ibo.unbind();
+            vbo.unbind();
         }
 
         void draw(bool wireframe = false) const {
@@ -71,6 +79,7 @@ namespace shell::gl {
             if(ibo.size() == 0 || vbo.size() == 0) return; // Do nothing if no data has been uploaded yet
             glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
             glDrawElements(GL_TRIANGLES, (GLsizei)ibo.size(), GL_UNSIGNED_INT, nullptr);
+            vao.unbind();
         }
     };
 }// namespace shell::gl

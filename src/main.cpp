@@ -15,7 +15,6 @@ using namespace shell;
 using namespace shell::gl;
 using namespace shell::gl::resource;
 using Key = sf::Keyboard::Key;
-namespace fs = std::filesystem;
 using glm::mat4;
 using glm::quat;
 using glm::vec3;
