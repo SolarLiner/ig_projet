@@ -6,6 +6,7 @@
 #define IG_PROJET_PANORBITSYSTEM_H
 
 #include "../components/PanOrbitCamera.h"
+#include "../components/Time.h"
 #include "../events.h"
 #include "System.h"
 
@@ -29,13 +30,14 @@ namespace shell::systems {
         }
 
         void operator()(const sf::Window &window, entt::registry &registry) override {
+            auto dt = registry.ctx().get<components::Time>().last_frame.asSeconds();
             auto &camera = registry.ctx().get<gl::Camera>();
             auto &controller = registry.ctx().get<components::PanOrbitCamera>();
             auto size = window.getSize();
             window_size = vec2(size.x, size.y);
-            controller.zoom(zoom_ticks);
-            if(left_pressed) controller.pan(relative);
-            if(right_pressed) controller.translate(relative);
+            controller.zoom(zoom_ticks * dt);
+            if(left_pressed) controller.pan(relative * dt);
+            if(right_pressed) controller.translate(relative * dt);
             zoom_ticks = 0;
             relative *= 0;
             controller.update(camera);
@@ -56,7 +58,7 @@ namespace shell::systems {
         }
 
         void handle_mouse_move(events::MouseMove move) {
-            relative = (move.absolute - last_mouse_pos) / window_size;
+            relative += (move.absolute - last_mouse_pos) / window_size;
             last_mouse_pos = move.absolute;
         }
 
