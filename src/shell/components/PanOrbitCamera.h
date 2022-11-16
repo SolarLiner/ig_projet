@@ -39,7 +39,10 @@ namespace shell::components {
             vec3 vy = transform_point(v, vec3(-1, 0, 0));
             hv *= sensitivity;
             quat r = glm::angleAxis(hv.x, vx) * glm::angleAxis(hv.y, vy);
+            auto et_dist = glm::distance(eye, target);
             eye = r * eye;
+            auto dir = glm::normalize(eye - target);
+            eye = et_dist * dir;
         }
 
         void translate(vec3 world_space) {
