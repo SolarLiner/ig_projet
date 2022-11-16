@@ -7,6 +7,7 @@
 #include "shell/systems/EventListener.h"
 #include "shell/systems/OpenMeshUpload.h"
 #include "shell/systems/PanOrbitSystem.h"
+#include "transforms/Laplace.h"
 #include <filesystem>
 #include <string>
 
@@ -25,6 +26,7 @@ void quit_on_escape(entt::registry &reg, events::KeyboardEvent event) {
 }
 
 int main() {
+    transforms::Laplace laplace(0.5);
     Shell shell;
 
     auto &ctx = shell.setup_default_environment();
@@ -35,6 +37,12 @@ int main() {
     shell.add_system(new systems::PanOrbitSystem());
     shell.add_system(new systems::EventListener<events::KeyboardEvent>(quit_on_escape));
     shell.add_system(new systems::OpenMeshUpload("resources"));
+    shell.add_system([laplace](const auto &, entt::registry &registry) {
+        auto view = registry.template view<base::Mesh>();
+        for (auto entity: view) {
+            registry.patch<base::Mesh>(entity, laplace);
+        }
+    });
     shell.add_system(new Renderer());
 
     auto mesh_entity = shell.registry.create();

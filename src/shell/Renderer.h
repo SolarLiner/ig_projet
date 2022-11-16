@@ -19,6 +19,7 @@
 namespace shell::gl {
     class Renderer : public shell::systems::System {
     public:
+        Renderer();
         struct wireframe {};
         void before_run(const sf::Window &window, entt::registry &) override;
         void operator()(const sf::Window &, entt::registry &) override;

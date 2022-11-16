@@ -13,14 +13,40 @@
 #include "gl/ProgramRef.h"
 #include "gl/Transform.h"
 #include "gl/resource/shaders/Program.h"
-#include "glm/gtx/string_cast.hpp"
+
+#ifdef DEBUG_OPENGL
+#include <stdarg.h>
+#endif
 
 static void set_size(GLint w, GLint h) { glViewport(0, 0, w, h); }
 static void set_size(unsigned int w, unsigned int h) { set_size((GLint) w, (GLint) h); }
 static void set_size(sf::Vector2u size) { set_size(size.x, size.y); }
 static void set_size(glm::vec2 size) { set_size((GLint) size.x, (GLint) size.y); }
 
+#ifdef DEBUG_OPENGL
+#include <iomanip>
+#include <iostream>
+static void print_opengl_calls(const char *name, void *, int nargs, ...) {
+    va_list args;
+    va_start(args, nargs);
+    std::cout << "[DEBUG] OpenGL: " << name << "(";
+    for (int i = 0; i < nargs; ++i) {
+        int arg = va_arg(args, int);
+        if (i > 0) std::cout << ", ";
+        std::cout << arg;
+    }
+    std::cout << ")" << std::endl;
+}
+#endif
+
 namespace shell::gl {
+    Renderer::Renderer() {
+
+#ifdef DEBUG_OPENGL
+        glad_set_pre_callback(print_opengl_calls);
+#endif
+    }
+
     void Renderer::handle_resize(events::Resize resize) { size_changed = glm::vec2(resize.width, resize.height); }
 
     void Renderer::before_run(const sf::Window &window, entt::registry &registry) {
@@ -60,7 +86,7 @@ namespace shell::gl {
             auto map = lights.map(resource::Write);
             auto it = view.begin();
             int i = 0;
-            for(; i < Lights::MAX_LIGHTS && it != view.end(); ++i, ++it) {
+            for (; i < Lights::MAX_LIGHTS && it != view.end(); ++i, ++it) {
                 map[0].lights[i] = registry.get<components::Light>(*it);
             }
             map[0].num_lights = i;
