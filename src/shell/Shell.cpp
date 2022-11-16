@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstdarg>
 #include <iostream>
+#include "components/Time.h"
 
 /*
 void debug_callback(const char* mesg, void*, int nargs, ...) {
@@ -44,13 +45,13 @@ namespace shell {
 
         for (auto &system: systems) { system->before_run(window, registry); }
 
-        sf::Clock elapsed;
-        sf::Clock last_frame;
+        auto &time = registry.ctx().emplace<components::Time>();
         while (window.isOpen()) {
             poll_events(dispatcher);
             for (auto &system: systems) (*system)(window, registry);
             dispatcher.update();
-            last_frame.restart();
+            time.last_frame = time.frame.getElapsedTime();
+            time.frame.restart();
         }
         exit(0);
     }
