@@ -38,7 +38,7 @@ namespace shell {
                 program_ref.get_program().set_uniform_block("Lights", UniformBindings::Lights);
 
                 auto view = registry.view<const base::Mesh>(entt::exclude<gl::Mesh>);
-                for (auto [entity, base_mesh]: view.each()) { handle_upload_mesh(registry, entity); }
+                for (auto entity: view) { handle_upload_mesh(registry, entity); }
             }
 
         private:
