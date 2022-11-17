@@ -1,8 +1,8 @@
 #include "base/Mesh.h"
-#include "shell/Renderer.h"
 #include "shell/Shell.h"
 #include "shell/events.h"
 #include "shell/gl/Camera.h"
+#include "shell/gl/Renderer.h"
 #include "shell/gl/Transform.h"
 #include "shell/systems/EventListener.h"
 #include "shell/systems/OpenMeshUpload.h"
@@ -13,7 +13,6 @@
 
 using namespace shell;
 using namespace shell::gl;
-using namespace shell::gl::resource;
 using Key = sf::Keyboard::Key;
 using glm::mat4;
 using glm::quat;

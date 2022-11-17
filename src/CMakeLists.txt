@@ -1,4 +1,5 @@
 add_subdirectory(base)
+add_subdirectory(glow)
 add_subdirectory(shell)
 add_subdirectory(transforms)
 

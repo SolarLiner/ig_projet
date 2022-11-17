@@ -6,8 +6,7 @@
 #define IG_PROJET_CAMERA_H
 
 #include "Transform.h"
-#include "resource/buffers/UniformBuffer.h"
-#include "resource/shaders/Program.h"
+#include <glow/buffers/UniformBuffer.h>
 #include <glm/detail/type_quat.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -19,6 +18,7 @@ using glm::quat;
 using glm::vec3;
 
 namespace shell::gl {
+    using namespace glow::buffers;
     class Camera {
     public:
         Camera() : buffer(1) { update(); }
@@ -49,12 +49,12 @@ namespace shell::gl {
         void bind_to(size_t binding) { buffer.bind_to(binding); }
 
         void update_projection() {
-            auto map = buffer.map(resource::Write);
+            auto map = buffer.map(Write);
             map[0].update_projection(glm::perspective(fov, aspect, znear, zfar));
         }
 
         void update_view() {
-            auto map = buffer.map(resource::Write);
+            auto map = buffer.map(Write);
             map[0].update_view(_view);
         }
 
@@ -95,7 +95,7 @@ namespace shell::gl {
             float projection[16];
         };
         float fov = M_PI_2f, aspect = 1, znear = 0.01f, zfar = 1e3;
-        resource::UniformBuffer<matrices, resource::Dynamic> buffer;
+        UniformBuffer<matrices, Dynamic> buffer;
     };
 
 }// namespace shell::gl

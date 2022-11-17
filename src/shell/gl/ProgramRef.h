@@ -5,21 +5,22 @@
 #ifndef IG_PROJET_PROGRAMREF_H
 #define IG_PROJET_PROGRAMREF_H
 
-#include "resource/shaders/Program.h"
+#include <glow/shaders/Program.h>
 #include <memory>
 
-namespace shell {
+namespace shell::gl {
+    using namespace glow::shaders;
     class ProgramRef {
     public:
-        explicit ProgramRef(gl::resource::Program *program): program(program) {}
+        explicit ProgramRef(Program *program): program(program) {}
         ProgramRef(ProgramRef &ref) = default;
 
-        [[nodiscard]] const gl::resource::Program &get_program() const {
+        [[nodiscard]] const Program &get_program() const {
             return *program;
         }
 
     private:
-        std::shared_ptr<gl::resource::Program> program;
+        std::shared_ptr<Program> program;
     };
 }// namespace shell
 

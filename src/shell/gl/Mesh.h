@@ -7,16 +7,51 @@
 
 #include "../../base/Mesh.h"
 #include "../Color.h"
-#include "resource/buffers/IndexBuffer.h"
-#include "resource/buffers/VertexArray.h"
-#include "resource/buffers/VertexBuffer.h"
+#include <glow/buffers/Buffer.h>
+#include <glow/buffers/VertexArray.h>
+#include <glow/buffers/VertexBuffer.h>
+#include <glow/buffers/IndexBuffer.h>
 
 namespace shell::gl {
-    using namespace resource;
+    using namespace glow::buffers;
+    struct Vertex {
+        Vertex(glm::vec3 vertex, glm::vec3 normal, glm::vec2 uv = glm::vec2(0.f, 0.f), Color color = Color::Black,
+               float weight = 0.f)
+            : vertex(vertex), normal(normal), uv(uv), color(color), weight(weight) {}
+
+        static void declare_vertex_attributes() {
+            // Vertex
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) nullptr);
+            glEnableVertexAttribArray(0);
+
+            // Normal
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+            glEnableVertexAttribArray(1);
+
+            // UV/Texcoords
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, uv));
+            glEnableVertexAttribArray(2);
+
+            // Vertex color
+            glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, color));
+            glEnableVertexAttribArray(3);
+
+            // Vertex weight
+            glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, weight));
+            glEnableVertexAttribArray(4);
+        }
+
+        glm::vec3 vertex;
+        glm::vec3 normal;
+        glm::vec2 uv;
+        Color color;
+        float weight;
+    };
+
     struct Mesh {
     public:
-        VertexBuffer<resource::Dynamic> vbo{};
-        IndexBuffer<resource::Dynamic> ibo{};
+        VertexBuffer<Vertex, Dynamic> vbo{};
+        IndexBuffer<uint32_t, Dynamic> ibo{};
         VertexArray vao{};
 
         Mesh() {
@@ -44,7 +79,8 @@ namespace shell::gl {
                 auto normal = mesh.normal(v);
                 auto color = mesh.color(v);
                 auto uv = mesh.texcoord2D(v);
-                vertices.push_back(Vertex({pt[0], pt[1], pt[2]}, {normal[0], normal[1], normal[2]}, {uv[0], uv[1]}, Color(color[0], color[1], color[2])));
+                vertices.push_back(Vertex({pt[0], pt[1], pt[2]}, {normal[0], normal[1], normal[2]}, {uv[0], uv[1]},
+                                          Color(color[0], color[1], color[2])));
             }
 
             mesh.release_vertex_texcoords2D();
@@ -55,9 +91,7 @@ namespace shell::gl {
             mesh.request_face_status();
 
             for (auto f: mesh.faces()) {
-                for (auto fv_it = mesh.cfv_iter(f); fv_it.is_valid(); ++fv_it) {
-                    indices.push_back(fv_it->idx());
-                }
+                for (auto fv_it = mesh.cfv_iter(f); fv_it.is_valid(); ++fv_it) { indices.push_back(fv_it->idx()); }
             }
 
             mesh.release_face_status();
@@ -76,9 +110,9 @@ namespace shell::gl {
 
         void draw(bool wireframe = false) const {
             vao.bind();
-            if(ibo.size() == 0 || vbo.size() == 0) return; // Do nothing if no data has been uploaded yet
+            if (ibo.size() == 0 || vbo.size() == 0) return;// Do nothing if no data has been uploaded yet
             glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
-            glDrawElements(GL_TRIANGLES, (GLsizei)ibo.size(), GL_UNSIGNED_INT, nullptr);
+            glDrawElements(GL_TRIANGLES, (GLsizei) ibo.size(), GL_UNSIGNED_INT, nullptr);
             vao.unbind();
         }
     };

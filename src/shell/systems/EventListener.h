@@ -11,26 +11,22 @@
 #include <memory>
 #include <optional>
 
-namespace shell {
-    namespace systems {
-        template<typename Event>
-        class EventListener : public shell::systems::System {
-        public:
-            typedef std::function<void(entt::registry &, Event)> handler_t;
-            explicit EventListener(handler_t handler) : registry(), handler(handler) {}
+namespace shell::systems {
+    template<typename Event>
+    class EventListener : public shell::systems::System {
+    public:
+        typedef std::function<void(entt::registry &, Event)> handler_t;
+        explicit EventListener(handler_t handler) : registry(), handler(handler) {}
 
-            void before_run(const sf::Window &window, entt::registry &reg) override {
-                registry = &reg;
-                reg.ctx().get<entt::dispatcher>().sink<Event>().template connect<&EventListener::handle_event>(*this);
-            }
+        void before_run(const sf::Window &window, entt::registry &reg) override {
+            registry = &reg;
+            reg.ctx().get<entt::dispatcher>().sink<Event>().template connect<&EventListener::handle_event>(*this);
+        }
 
-        private:
-            void handle_event(Event event) {
-                handler(*registry, event);
-            }
-            entt::registry *registry;
-            handler_t handler;
-        };
-    }// namespace systems
-}
+    private:
+        void handle_event(Event event) { handler(*registry, event); }
+        entt::registry *registry;
+        handler_t handler;
+    };
+}// namespace shell::systems
 #endif//IG_PROJET_EVENTLISTENER_H
