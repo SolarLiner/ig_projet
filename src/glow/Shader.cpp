@@ -2,18 +2,14 @@
 // Created by solarliner on 12/11/22.
 //
 
-#include "Shader.h"
-#include "ShaderException.h"
+#include "include/glow/shaders/Shader.h"
+#include "include/glow/shaders/ShaderException.h"
 #include <fstream>
-#include <string>
 
-namespace shell::gl::resource {
-    Shader::Shader(Shader::Type type) : id(glCreateShader(type)) {
-    }
+namespace glow::shaders {
+    Shader::Shader(Shader::Type type) : id(glCreateShader(type)) {}
 
-    Shader::Shader(Shader::Type type, const std::string &glsl): Shader(type) {
-        compile(glsl);
-    }
+    Shader::Shader(Shader::Type type, const std::string &glsl) : Shader(type) { compile(glsl); }
 
     Shader::Shader(Shader::Type type, const fs::path &path) : Shader(type) {
         std::ifstream file(path);
@@ -24,17 +20,13 @@ namespace shell::gl::resource {
         file.close();
     }
 
-    Shader::~Shader() {
-        glDeleteShader(id);
-    }
+    Shader::~Shader() { glDeleteShader(id); }
 
     void Shader::compile(const std::string &glsl) {
-        const char* glsl_addr = glsl.c_str();
+        const char *glsl_addr = glsl.c_str();
         glShaderSource(id, 1, &glsl_addr, nullptr);
         glCompileShader(id);
-        if (!compiled()) {
-            throw ShaderException(info_log());
-        }
+        if (!compiled()) { throw ShaderException(info_log()); }
         initialized = true;
     }
 
@@ -53,4 +45,4 @@ namespace shell::gl::resource {
         log.resize(length);
         return log;
     }
-}// namespace shell::gl::resource
+}// namespace glow::shaders

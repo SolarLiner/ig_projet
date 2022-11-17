@@ -2,14 +2,14 @@
 // Created by solarliner on 12/11/22.
 //
 
-#ifndef IG_PROJET_BUFFER_H
-#define IG_PROJET_BUFFER_H
+#ifndef GLOW_BUFFER_H
+#define GLOW_BUFFER_H
 
 #include "../Resource.h"
-#include "glad.h"
+#include <glad.h>
 #include <span>
 
-namespace shell::gl::resource {
+namespace glow::buffers {
     enum BufferType {
         Array = GL_ARRAY_BUFFER,
         ElementArray = GL_ELEMENT_ARRAY_BUFFER,
@@ -24,36 +24,36 @@ namespace shell::gl::resource {
         Read = GL_READ_ONLY,
         Write = GL_WRITE_ONLY,
     };
+
     template<typename T, BufferType Type, BufferDraw Draw = Static>
-    class Buffer : Resource {
+    class Buffer : glow::Resource {
         static_assert(!std::is_pointer_v<T>);
+
     public:
         struct Map {
-            Map(std::span<T> data, const Buffer<T, Type, Draw> &buffer): ptr(data), buf(buffer) {}
+            Map(std::span<T> data, const Buffer<T, Type, Draw> &buffer) : ptr(data), buf(buffer) {}
 
             ~Map() {
                 glUnmapBuffer(Type);
                 buf.unbind();
             }
 
-            std::span<T> &operator*() {
-                return ptr;
-            }
+            std::span<T> &operator*() { return ptr; }
 
-            T &operator[](size_t ix) {
-                return ptr[ix];
-            }
+            T &operator[](size_t ix) { return ptr[ix]; }
 
             std::span<T> ptr;
+
         private:
             const Buffer<T, Type, Draw> &buf;
         };
         Buffer() : Resource() { glGenBuffers(1, &id); }
 
-        Buffer(const Buffer &buffer, size_t start = 0, size_t end = 0): Buffer() {
+        Buffer(const Buffer &buffer, size_t start = 0, size_t end = 0) : Buffer() {
             glBindBuffer(GL_COPY_READ_BUFFER, (GLuint) buffer);
             glBindBuffer(GL_COPY_WRITE_BUFFER, id);
-            glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, (GLintptr)start, (GLintptr) end, buffer.bytes());
+            glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, (GLintptr) start, (GLintptr) end,
+                                buffer.bytes());
         }
 
         Buffer(size_t length) : Buffer() {
@@ -101,7 +101,7 @@ namespace shell::gl::resource {
         Map map(BufferMapping mapping) {
             bind();
             auto data = glMapBuffer(Type, mapping);
-            return {std::span((T*)data, length), *this};
+            return {std::span((T *) data, length), *this};
         }
 
         explicit operator GLuint() const override { return id; }
@@ -120,6 +120,6 @@ namespace shell::gl::resource {
 
         const size_t elsize = sizeof(T);
     };
-}// namespace shell::gl::resource
+}// namespace glow::buffers
 
-#endif//IG_PROJET_BUFFER_H
+#endif//GLOW_BUFFER_H

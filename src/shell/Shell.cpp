@@ -45,6 +45,7 @@ namespace shell {
 
         for (auto &system: systems) { system->before_run(window, registry); }
 
+        window.setActive();
         auto &time = registry.ctx().emplace<components::Time>();
         while (window.isOpen()) {
             poll_events(dispatcher);

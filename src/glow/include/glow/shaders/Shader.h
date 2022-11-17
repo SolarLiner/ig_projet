@@ -2,21 +2,19 @@
 // Created by solarliner on 12/11/22.
 //
 
-#ifndef IG_PROJET_SHADER_H
-#define IG_PROJET_SHADER_H
+#ifndef GLOW_SHADER_H
+#define GLOW_SHADER_H
 
 #include "../Resource.h"
-#include "glm/detail/type_mat4x4.hpp"
+#include "glad.h"
 #include <filesystem>
-#include <functional>
-#include <glad.h>
-#include <glm/common.hpp>
 #include <string>
 
-namespace fs = std::filesystem;
 
-namespace shell::gl::resource {
-    class Shader : Resource {
+namespace glow::shaders {
+    namespace fs = std::filesystem;
+    class Shader : glow::Resource {
+
     public:
         enum Type {
             Vertex = GL_VERTEX_SHADER,
@@ -38,11 +36,10 @@ namespace shell::gl::resource {
         explicit operator GLuint() const override { return id; }
 
     private:
-
         GLuint id;
         bool initialized = false;
     };
 
-}// namespace shell::gl::resource
+}// namespace glow::shaders
 
-#endif//IG_PROJET_SHADER_H
+#endif//GLOW_SHADER_H

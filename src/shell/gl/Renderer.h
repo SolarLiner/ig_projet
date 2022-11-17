@@ -5,18 +5,20 @@
 #ifndef IG_PROJET_RENDERER_H
 #define IG_PROJET_RENDERER_H
 
-#include "Color.h"
-#include "components/Light.h"
+#include "../Color.h"
+#include "../components/Light.h"
+#include "../events.h"
+#include "../systems/System.h"
+#include "ClearColor.h"
 #include "SFML/Graphics.hpp"
-#include "events.h"
-#include "gl/ClearColor.h"
-#include "gl/resource/buffers/UniformBuffer.h"
-#include "glad.h"
-#include "glm/vec2.hpp"
-#include "systems/System.h"
+#include <glad.h>
+#include <glm/vec2.hpp>
+#include <glow/buffers/UniformBuffer.h>
 #include <cstddef>
 
 namespace shell::gl {
+    using glow::buffers::UniformBuffer;
+
     class Renderer : public shell::systems::System {
     public:
         Renderer();
@@ -31,7 +33,7 @@ namespace shell::gl {
             int __pad0[3]{};
             components::Light lights[MAX_LIGHTS]{};
         };
-        resource::UniformBuffer<Renderer::Lights> lights{1};
+        UniformBuffer<Renderer::Lights> lights{1};
         std::optional<glm::vec2> size_changed{};
     };
 
