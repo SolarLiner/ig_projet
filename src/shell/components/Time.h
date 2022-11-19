@@ -13,27 +13,17 @@ namespace shell::components {
     struct Time {
         typedef std::chrono::duration<uint64_t, std::ratio<1, 1000>> tick_t;
         typedef std::chrono::duration<float> s;
-        static tick_t now() { return (tick_t) SDL_GetTicks64(); }
+        static tick_t now();
 
-        [[nodiscard]] tick_t since_start() const {
-            return now() - start;
-        }
+        [[nodiscard]] tick_t since_start() const;
 
-        [[nodiscard]] s since_start_secs() const {
-            return duration_cast<s>(since_start());
-        }
+        [[nodiscard]] s since_start_secs() const;
 
-        [[nodiscard]] tick_t since_frame() const {
-            return now() - frame;
-        }
+        [[nodiscard]] tick_t since_frame() const;
 
-        [[nodiscard]] s since_frame_secs() const {
-            return duration_cast<s>(since_frame());
-        }
+        [[nodiscard]] s since_frame_secs() const;
 
-        [[nodiscard]] s last_frame_secs() const {
-            return duration_cast<s>(last_frame);
-        }
+        [[nodiscard]] s last_frame_secs() const;
 
         tick_t start, frame;
         tick_t last_frame;

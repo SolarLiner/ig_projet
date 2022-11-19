@@ -20,11 +20,9 @@ namespace shell::gl {
     void Renderer::handle_resize(events::Resize resize) { size_changed = resize.size; }
 
     void Renderer::before_run(Shell &shell) {
-        auto &registry = shell.registry;
-        registry.ctx().get<entt::dispatcher>().sink<events::Resize>().connect<&Renderer::handle_resize>(*this);
-        auto &camera = registry.ctx().get<Camera>();
+        shell.resources().get<entt::dispatcher>().sink<events::Resize>().connect<&Renderer::handle_resize>(*this);
+        auto &camera = shell.resources().get<Camera>();
         auto size = shell.viewport_size();
-//        render_ctx.set_active();
         set_size(size);
         camera.resize(size);
 
@@ -50,6 +48,7 @@ namespace shell::gl {
         auto drawables = registry.view<const Transform, const Mesh, const ProgramRef>();
 
         if (size_changed) {
+            spdlog::debug("[Renderer] viewport new size {}x{}", size_changed->x, size_changed->y);
             camera.resize(*size_changed);
             set_size(*size_changed);
             size_changed.reset();

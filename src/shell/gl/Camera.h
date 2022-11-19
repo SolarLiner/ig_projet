@@ -21,75 +21,39 @@ namespace shell::gl {
     using namespace glow::buffers;
     class Camera {
     public:
-        Camera() : buffer(1) { update(); }
-        void resize(float w, float h) { aspect = w / h; }
+        Camera();
+        void resize(float w, float h);
 
-        [[nodiscard]] float get_fov() const { return fov; }
-        void set_fov(float fov, bool deffered = false) {
-            Camera::fov = fov;
-            if (!deffered) update_projection();
-        }
-        [[nodiscard]] float get_aspect_ratio() const { return aspect; }
-        void resize(float w, float h, bool deffered = false) {
-            Camera::aspect = w / h;
-            if (!deffered) update_projection();
-        }
-        void resize(glm::vec2 size, bool deffered = false) { resize(size.x, size.y, deffered); }
-        [[nodiscard]] float get_znear() const { return znear; }
-        void set_znear(float znear, bool deffered = false) {
-            Camera::znear = znear;
-            if (!deffered) update_projection();
-        }
-        [[nodiscard]] float get_zfar() const { return zfar; }
-        void set_zfar(float zfar, bool deffered = false) {
-            Camera::zfar = zfar;
-            if (!deffered) update_projection();
-        }
+        [[nodiscard]] float get_fov() const;
+        void set_fov(float fov, bool deffered = false);
+        [[nodiscard]] float get_aspect_ratio() const;
+        void resize(float w, float h, bool deffered = false);
+        void resize(glm::vec2 size, bool deffered = false);
+        [[nodiscard]] float get_znear() const;
+        void set_znear(float znear, bool deffered = false);
+        [[nodiscard]] float get_zfar() const;
+        void set_zfar(float zfar, bool deffered = false);
 
-        void bind_to(size_t binding) { buffer.bind_to(binding); }
+        void bind_to(size_t binding);
 
-        void update_projection() {
-            auto map = buffer.map(Write);
-            map[0].update_projection(glm::perspective(fov, aspect, znear, zfar));
-        }
+        void update_projection();
 
-        void update_view() {
-            auto map = buffer.map(Write);
-            map[0].update_view(_view);
-        }
+        void update_view();
 
-        void update() {
-            buffer.set(0, matrices(_view, glm::perspective(fov, aspect, znear, zfar)));
-        }
+        void update();
 
-        [[nodiscard]] glm::mat4 get_view() const { return _view; }
-        void set_view(glm::mat4 view, bool deffered = false) {
-            _view = view;
-            if (!deffered) update_view();
-        }
+        [[nodiscard]] glm::mat4 get_view() const;
+        void set_view(glm::mat4 view, bool deffered = false);
 
     private:
-        glm::mat4 _view;
+        glm::mat4 _view{};
 
         struct matrices {
-            matrices(glm::mat4 view, glm::mat4 projection): view(), projection() {
-                update_view(view);
-                update_projection(projection);
-            }
+            matrices(glm::mat4 view, glm::mat4 projection);
 
-            void update_view(glm::mat4 view) {
-                auto p = glm::value_ptr(view);
-                for(int i = 0; i < 16; ++i) {
-                    this->view[i] = p[i];
-                }
-            }
+            void update_view(glm::mat4 view);
 
-            void update_projection(glm::mat4 projection) {
-                auto p = glm::value_ptr(projection);
-                for(int i = 0; i < 16; ++i) {
-                    this->projection[i] = p[i];
-                }
-            }
+            void update_projection(glm::mat4 projection);
 
             float view[16];
             float projection[16];

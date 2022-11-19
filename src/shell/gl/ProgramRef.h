@@ -12,7 +12,10 @@ namespace shell::gl {
     using namespace glow::shaders;
     class ProgramRef {
     public:
-        explicit ProgramRef(Program *program): program(program) {}
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "google-explicit-constructor"
+        ProgramRef(Program *program): program(program) {}
+#pragma clang diagnostic pop
         ProgramRef(ProgramRef &ref) = default;
 
         [[nodiscard]] const Program &get_program() const {

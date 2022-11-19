@@ -23,6 +23,7 @@ namespace shell::systems {
             auto &res = shell.resources();
             if (!res.contains<components::PanOrbitCamera>()) res.emplace<PanOrbitCamera>();
             auto &dispatcher = res.get<entt::dispatcher>();
+            dispatcher.sink<events::KeyboardEvent>().connect<&PanOrbitSystem::handle_keys>(*this);
             dispatcher.sink<events::MouseMove>().connect<&PanOrbitSystem::handle_mouse_move>(*this);
             dispatcher.sink<events::MouseButton>().connect<&PanOrbitSystem::handle_mouse_press>(*this);
             dispatcher.sink<events::ScrollWheel>().connect<&PanOrbitSystem::handle_scroll>(*this);
@@ -46,10 +47,10 @@ namespace shell::systems {
     private:
         void handle_mouse_press(events::MouseButton button) {
             switch (button.button) {
-                case 0:
+                case SDL_BUTTON_LEFT:
                     left_pressed = button.pressed;
                     break;
-                case 1:
+                case SDL_BUTTON_RIGHT:
                     right_pressed = button.pressed;
                     break;
                 default:
@@ -58,14 +59,24 @@ namespace shell::systems {
         }
 
         void handle_mouse_move(events::MouseMove move) {
-            relative += (move.absolute - last_mouse_pos) / window_size;
-            last_mouse_pos = move.absolute;
+            relative += move.relative;
         }
 
         void handle_scroll(events::ScrollWheel wheel) { zoom_ticks += wheel.delta.y; }
 
+        void handle_keys(events::KeyboardEvent event) {
+            glm::vec2 right(10, 0), up(0, 10);
+            if(!event.pressed) return;
+            if(event.is(SDLK_LEFT)) relative -= right;
+            if(event.is(SDLK_RIGHT)) relative += right;
+            if(event.is(SDLK_UP)) relative += up;
+            if(event.is(SDLK_DOWN)) relative -= up;
+            if(event.is(SDLK_PAGEUP)) zoom_ticks += 1;
+            if(event.is(SDLK_PAGEDOWN)) zoom_ticks -= 1;
+        }
+
         bool left_pressed = false, right_pressed = false;
-        vec2 relative{0}, last_mouse_pos{0}, window_size{0};
+        vec2 relative{0}, window_size{0};
         float zoom_ticks;
     };
 }// namespace shell::systems
