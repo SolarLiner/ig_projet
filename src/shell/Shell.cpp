@@ -132,7 +132,7 @@ namespace shell {
         spdlog::trace("Shell::init");
         if (window && context) return;
 
-        SdlException::ensure(SDL_Init(SDL_INIT_VIDEO));
+        SdlException::ensure(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS));
         spdlog::debug("SDL initialized");
 
         window = SDL_CreateWindow("Not Polyscope", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
@@ -177,11 +177,13 @@ namespace shell {
         time.start = components::Time::now();
         while (!should_close) {
             poll_events(dispatcher);
+            auto poll_time = time.since_frame();
             for (auto &system: systems) system->execute(*this);
+            auto systems_time = time.since_frame() - poll_time;
             dispatcher.update();
             time.last_frame = time.since_frame();
             time.frame = components::Time::now();
-            spdlog::trace("end shell iter {} ms", time.last_frame.count());
+            spdlog::info("frame {} ms\n\tpolling {} ms\n\tsystems {} ms", time.last_frame.count(), poll_time.count(), systems_time.count());
         }
         exit(0);
     }
@@ -195,7 +197,7 @@ namespace shell {
                     dispatcher.enqueue<events::Close>();
                     break;
                 case SDL_WINDOWEVENT:
-                    switch(event.window.type) {
+                    switch(event.window.event) {
                         case SDL_WINDOWEVENT_CLOSE:
                             should_close = true;
                             break;

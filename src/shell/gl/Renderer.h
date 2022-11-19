@@ -34,8 +34,8 @@ namespace shell::gl {
             int __pad0[3]{};
             components::Light lights[MAX_LIGHTS]{};
         };
-        UniformBuffer<Renderer::Lights> lights{1};
-        std::optional<glm::vec2> size_changed{};
+        UniformBuffer<Renderer::Lights, glow::buffers::Dynamic> lights{1};
+        std::optional<glm::vec2> size_changed = std::nullopt;
     };
 
 }// namespace shell::gl

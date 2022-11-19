@@ -2,8 +2,9 @@
 // Created by solarliner on 12/11/22.
 //
 
-#include "include/glow/shaders/Program.h"
-#include "glad.h"
+#include "glow/shaders/Program.h"
+#include <glad.h>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace glow::shaders {
     Program::Program() : glow::Resource(), id(glCreateProgram()) {}
@@ -45,38 +46,19 @@ namespace glow::shaders {
         glUseProgram(id);
     }
 
-    template<>
-    inline void Program::set_uniform_at(GLint loc, bool value) const {
-        glUniform1i(loc, value);
-    }
+    void Program::set_uniform_at(GLint loc, bool value) { glUniform1i(loc, value); }
 
-    template<>
-    inline void Program::set_uniform_at(GLint loc, int value) const {
-        glUniform1i(loc, value);
-    }
+    void Program::set_uniform_at(GLint loc, int value) { glUniform1i(loc, value); }
 
-    template<>
-    inline void Program::set_uniform_at(GLint loc, unsigned int value) const {
-        glUniform1ui(loc, value);
-    }
+    void Program::set_uniform_at(GLint loc, unsigned int value) { glUniform1ui(loc, value); }
 
-    template<>
-    inline void Program::set_uniform_at(GLint loc, glm::vec<2, float, glm::defaultp> value) const {
-        glUniform2fv(loc, 1, reinterpret_cast<const GLfloat *>(&value));
-    }
+    void Program::set_uniform_at(GLint loc, glm::vec2 value) { glUniform2fv(loc, 1, glm::value_ptr(value)); }
 
-    template<>
-    inline void Program::set_uniform_at(GLint loc, glm::vec<3, float, glm::defaultp> value) const {
-        glUniform3fv(loc, 1, reinterpret_cast<const GLfloat *>(&value));
-    }
+    void Program::set_uniform_at(GLint loc, glm::vec3 value) { glUniform3fv(loc, 1, glm::value_ptr(value)); }
 
-    template<>
-    inline void Program::set_uniform_at(GLint loc, glm::vec<4, float, glm::defaultp> value) const {
-        glUniform4fv(loc, 1, reinterpret_cast<const GLfloat *>(&value));
-    }
+    void Program::set_uniform_at(GLint loc, glm::vec4 value) { glUniform4fv(loc, 1, glm::value_ptr(value)); }
 
-    template<>
-    inline void Program::set_uniform_at(GLint loc, glm::mat<4, 4, float, glm::defaultp> value) const {
-        glUniformMatrix4fv(loc, 1, GL_FALSE, reinterpret_cast<const GLfloat *>(&value));
+    void Program::set_uniform_at(GLint loc, glm::mat4 value) {
+        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
     }
 }// namespace glow::shaders

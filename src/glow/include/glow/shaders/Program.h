@@ -35,13 +35,15 @@ namespace glow::shaders {
         explicit operator GLuint() const override { return id; }
 
     private:
-        template<typename T>
-        void set_uniform_at(GLint, T) const {}
-
         void set_uniform_block_at(GLuint bid, size_t binding) const;
 
-        template<int dim, typename T, glm::qualifier Q>
-        void set_uniform_at(GLint, glm::vec<dim, T, Q>) const {};
+        static void set_uniform_at(GLint loc, unsigned int value) ;
+        static void set_uniform_at(GLint loc, int value) ;
+        static void set_uniform_at(GLint loc, bool value) ;
+        static void set_uniform_at(GLint loc, glm::vec2 value) ;
+        static void set_uniform_at(GLint loc, glm::vec3 value) ;
+        static void set_uniform_at(GLint loc, glm::vec4 value) ;
+        static void set_uniform_at(GLint loc, glm::mat4 value) ;
 
         void ensure() const {
             if (!valid()) throw ShaderException("Program was not ready before it was used");

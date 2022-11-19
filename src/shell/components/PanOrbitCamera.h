@@ -22,41 +22,22 @@ namespace shell::components {
     class PanOrbitCamera {
     public:
         explicit PanOrbitCamera(vec3 eye = vec3(0, 1, 2), vec3 target = vec3(0))
-            : eye(eye), target(target), pan_sensitivity(100), translate_sensitivity(1.f), zoom_sensitivity(5.f) {}
+            : eye(eye), target(target), pan_sensitivity(1.f), translate_sensitivity(0.01f), zoom_sensitivity(5.f) {}
         vec3 eye, target;
         float pan_sensitivity, zoom_sensitivity, translate_sensitivity;
 
-        void update(gl::Camera &camera) { camera.set_view(view()); }
+        void update(gl::Camera &camera);
 
-        void zoom(float amount) {
-            vec3 dir = glm::normalize(target - eye);
-            eye += dir * amount * zoom_sensitivity;
-        }
+        void zoom(float amount);
 
-        void pan(vec2 hv) {
-            mat4 v = glm::inverse(view());
-            vec3 vx = transform_point(v, vec3(0, -1, 0));
-            vec3 vy = transform_point(v, vec3(-1, 0, 0));
-            hv *= pan_sensitivity;
-            quat r = glm::angleAxis(hv.x, vx) * glm::angleAxis(hv.y, vy);
-            auto et_dist = glm::distance(eye, target);
-            eye = r * eye;
-            auto dir = glm::normalize(eye - target);
-            eye = et_dist * dir;
-        }
+        void pan(vec2 hv);
 
-        void translate(vec3 world_space) {
-            eye += world_space * translate_sensitivity;
-            target += world_space * translate_sensitivity;
-        }
+        void translate(vec3 world_space);
 
-        void translate(vec2 screen_space) {
-            mat4 v = glm::inverse(view());
-            translate(transform_point(v, vec3(screen_space, 0)));
-        }
+        void translate(vec2 screen_space);
 
     private:
-        [[nodiscard]] glm::mat4 view() const { return glm::lookAt(eye, target, vec3(0, 1, 0)); }
+        [[nodiscard]] glm::mat4 view() const;
     };
 }// namespace shell::components
 

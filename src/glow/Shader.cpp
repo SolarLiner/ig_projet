@@ -2,8 +2,8 @@
 // Created by solarliner on 12/11/22.
 //
 
-#include "include/glow/shaders/Shader.h"
-#include "include/glow/shaders/ShaderException.h"
+#include "glow/shaders/Shader.h"
+#include "glow/shaders/ShaderException.h"
 #include <fstream>
 
 namespace glow::shaders {
