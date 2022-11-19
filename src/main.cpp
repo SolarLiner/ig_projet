@@ -7,10 +7,11 @@
 #include "shell/systems/EventListener.h"
 #include "shell/systems/OpenMeshUpload.h"
 #include "shell/systems/PanOrbitSystem.h"
+#include "shell/systems/System.h"
 #include "transforms/Laplace.h"
 #include <filesystem>
-#include <spdlog/spdlog.h>
 #include <spdlog/cfg/env.h>
+#include <spdlog/spdlog.h>
 
 using namespace shell;
 using namespace shell::gl;
@@ -25,7 +26,7 @@ void quit_on_escape(entt::registry &reg, events::KeyboardEvent event) {
 
 int main() {
     spdlog::cfg::load_env_levels();
-//    transforms::Laplace laplace(0.5);
+    transforms::Laplace laplace(0.5);
     Shell shell;
     shell.init();
     shell.setup_default_environment();
@@ -36,14 +37,10 @@ int main() {
     shell.emplace_system<systems::PanOrbitSystem>();
     shell.emplace_system<systems::EventListener<events::KeyboardEvent>>(quit_on_escape);
     shell.emplace_system<systems::OpenMeshUpload>("resources");
-/*
-    shell.add_system([laplace](const auto &, entt::registry &registry) {
-        auto view = registry.template view<base::Mesh>();
-        for (auto entity: view) {
-            registry.patch<base::Mesh>(entity, laplace);
-        }
+    shell.add_system([laplace](Shell &shell) {
+        auto view = shell.registry.template view<base::Mesh>();
+        for (auto entity: view) { shell.registry.patch<base::Mesh>(entity, laplace); }
     });
-*/
 
     shell.emplace_system<gl::Renderer>();
 
