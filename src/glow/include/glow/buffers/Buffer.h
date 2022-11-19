@@ -8,8 +8,18 @@
 #include "../Resource.h"
 #include <glad.h>
 #include <span>
+#include <vector>
 
 namespace glow::buffers {
+    class BufferException : public std::exception {
+    public:
+        BufferException(std::string msg) : msg(std::move(msg)) {}
+
+        [[nodiscard]] const char *what() const noexcept override { return msg.c_str(); }
+
+    private:
+        std::string msg;
+    };
     enum BufferType {
         Array = GL_ARRAY_BUFFER,
         ElementArray = GL_ELEMENT_ARRAY_BUFFER,
@@ -56,13 +66,13 @@ namespace glow::buffers {
                                 buffer.bytes());
         }
 
-        Buffer(size_t length) : Buffer() {
+        explicit Buffer(size_t length) : Buffer() {
             bind();
             glBufferData(Type, sizeof(T) * length, nullptr, Draw);
             unbind();
         }
 
-        Buffer(std::span<T> data) : Buffer() { upload(data); }
+        Buffer(std::initializer_list<T> data) : Buffer() { upload(data); }
 
         ~Buffer() { glDeleteBuffers(1, &id); }
 
@@ -75,6 +85,13 @@ namespace glow::buffers {
             length = data.size();
             glBufferData(Type, data.size_bytes(), as_bytes(data).data(), Draw);
             unbind();
+        }
+
+        void upload(std::initializer_list<T> list) {
+            bind();
+            auto bytesize = sizeof(T) * list.size();
+            length = list.size();
+            glBufferData(Type, bytesize, data(list), Draw);
         }
 
         void set(size_t ix, const T &data) {
@@ -101,6 +118,7 @@ namespace glow::buffers {
         Map map(BufferMapping mapping) {
             bind();
             auto data = glMapBuffer(Type, mapping);
+            if (!data) throw BufferException("Couldn't map buffer data");
             return {std::span((T *) data, length), *this};
         }
 

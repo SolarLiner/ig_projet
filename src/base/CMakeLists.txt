@@ -1,2 +1,2 @@
-add_library(base STATIC Mesh.cpp IOException.cpp IOException.h ops.cpp ops.h)
+add_library(base STATIC Mesh.cpp IOException.cpp  ops.cpp )
 target_link_libraries(base PUBLIC OpenMeshCore)

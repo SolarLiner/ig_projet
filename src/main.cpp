@@ -9,32 +9,33 @@
 #include "shell/systems/PanOrbitSystem.h"
 #include "transforms/Laplace.h"
 #include <filesystem>
-#include <string>
+#include <spdlog/spdlog.h>
+#include <spdlog/cfg/env.h>
 
 using namespace shell;
 using namespace shell::gl;
-using Key = sf::Keyboard::Key;
 using glm::mat4;
 using glm::quat;
 using glm::vec3;
 using glm::vec4;
 
 void quit_on_escape(entt::registry &reg, events::KeyboardEvent event) {
-    if (event.key == Key::Escape) reg.ctx().template get<entt::dispatcher>().template enqueue<events::Close>();
+    if (event.is(SDLK_ESCAPE)) reg.ctx().template get<entt::dispatcher>().template enqueue<events::Close>();
 }
 
 int main() {
+    spdlog::cfg::load_env_levels();
 //    transforms::Laplace laplace(0.5);
     Shell shell;
-
-    auto &ctx = shell.setup_default_environment();
-    auto &camera = ctx.get<gl::Camera>();
+    shell.init();
+    shell.setup_default_environment();
+    auto &camera = shell.resources().get<gl::Camera>();
     camera.set_fov(0.7f);
 
     auto start = std::chrono::steady_clock::now();
-    shell.add_system(new systems::PanOrbitSystem());
-    shell.add_system(new systems::EventListener<events::KeyboardEvent>(quit_on_escape));
-    shell.add_system(new systems::OpenMeshUpload("resources"));
+    shell.emplace_system<systems::PanOrbitSystem>();
+    shell.emplace_system<systems::EventListener<events::KeyboardEvent>>(quit_on_escape);
+    shell.emplace_system<systems::OpenMeshUpload>("resources");
 /*
     shell.add_system([laplace](const auto &, entt::registry &registry) {
         auto view = registry.template view<base::Mesh>();
@@ -43,7 +44,8 @@ int main() {
         }
     });
 */
-    shell.add_system(new Renderer());
+
+    shell.emplace_system<gl::Renderer>();
 
     auto mesh_entity = shell.registry.create();
     shell.registry.emplace<base::Mesh>(mesh_entity, base::Mesh::open("suzanne.obj"));

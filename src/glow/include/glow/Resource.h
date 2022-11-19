@@ -5,7 +5,7 @@
 #ifndef GLOW_RESOURCE_H
 #define GLOW_RESOURCE_H
 
-#include "glad.h"
+#include <glad.h>
 #include <string>
 
 namespace glow {
