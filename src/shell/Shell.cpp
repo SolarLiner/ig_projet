@@ -246,8 +246,8 @@ namespace shell {
 
         if (!window || !context) throw InitException();
     }
-    void Shell::add_system(systems::FunctionSystem::system_t system) {
-        add_system(new systems::FunctionSystem(std::move(system)));
+    void Shell::add_system(const systems::FunctionSystem::system_t& system) {
+        emplace_system<systems::FunctionSystem>(system);
     }
 
     entt::registry::context &Shell::resources() { return registry.ctx(); }

@@ -23,11 +23,10 @@
 namespace shell {
     class Shell {
     public:
-        void add_system(systems::FunctionSystem::system_t system);
+        void add_system(const systems::FunctionSystem::system_t& system);
 
         template<typename T, typename... Args>
         void emplace_system(Args &&...args) {
-            //            systems.template emplace(std::make_unique<T>(args...));
             systems.emplace_back(std::make_unique<T>(args...));
         }
 
