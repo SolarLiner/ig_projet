@@ -24,22 +24,23 @@ namespace shell::systems {
         explicit OpenMeshUpload(const fs::path &shaders_dir)
             : OpenMeshUpload(shaders_dir / "shader.vert", shaders_dir / "shader.frag") {}
 
-        void before_run(const sf::Window &window, entt::registry &registry) override {
-            registry.on_construct<base::Mesh>().connect<&OpenMeshUpload::handle_upload_mesh>(*this);
-            registry.on_update<base::Mesh>().connect<&OpenMeshUpload::handle_upload_mesh>(*this);
-            registry.on_destroy<base::Mesh>().connect<&OpenMeshUpload::handle_destroy_mesh>();
+        void before_run(Shell &shell) override {
+            shell.registry.on_construct<base::Mesh>().connect<&OpenMeshUpload::handle_upload_mesh>(*this);
+            shell.registry.on_update<base::Mesh>().connect<&OpenMeshUpload::handle_upload_mesh>(*this);
+            shell.registry.on_destroy<base::Mesh>().connect<&OpenMeshUpload::handle_destroy_mesh>();
 
-            auto &camera = registry.ctx().get<gl::Camera>();
+            auto &camera = shell.resources().get<gl::Camera>();
             camera.bind_to(UniformBindings::Camera);
             program_ref.get_program().set_uniform_block("Camera", UniformBindings::Camera);
             program_ref.get_program().set_uniform_block("Lights", UniformBindings::Lights);
 
-            auto view = registry.view<const base::Mesh>(entt::exclude<gl::Mesh>);
-            for (auto entity: view) { handle_upload_mesh(registry, entity); }
+            auto view = shell.registry.view<const base::Mesh>(entt::exclude<gl::Mesh>);
+            for (auto entity: view) { handle_upload_mesh(shell.registry, entity); }
         }
 
     private:
         void handle_upload_mesh(entt::registry &registry, entt::entity entity) {
+            spdlog::debug("[OpenMeshUpload] uploading for entity {}", (ENTT_ID_TYPE)entity);
             auto &base_mesh = registry.get<base::Mesh>(entity);
             auto &gl_mesh = registry.get_or_emplace<gl::Mesh>(entity);
             if (!registry.all_of<gl::ProgramRef>(entity)) registry.emplace<gl::ProgramRef>(entity, program_ref);
@@ -47,6 +48,7 @@ namespace shell::systems {
         }
 
         static void handle_destroy_mesh(entt::registry &registry, entt::entity entity) {
+            spdlog::debug("[OpenMeshUpload] deleting for entity {}", (ENTT_ID_TYPE)entity);
             registry.remove<gl::Mesh>(entity);
             registry.remove<gl::ProgramRef>(entity);
         }

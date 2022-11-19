@@ -5,8 +5,9 @@
 #ifndef IG_PROJET_COLOR_H
 #define IG_PROJET_COLOR_H
 
-#include "SFML/Graphics.hpp"
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 
 namespace shell {
     static float channel_to_linear(float x) {
@@ -28,8 +29,6 @@ namespace shell {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "google-explicit-constructor"
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
-        Color(sf::Color color) : Color(color.r, color.g, color.b, color.a) {}
-
         Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255)
             : r(r / 255.f), g(g / 255.f), b(b / 255.f), a(a / 255.f) {}
 
@@ -47,7 +46,7 @@ namespace shell {
         }
 
         float r, g, b, a;
-        Color with_alpha(float alpha) const;
+        [[nodiscard]] Color with_alpha(float alpha) const;
     };
 }// namespace shell
 

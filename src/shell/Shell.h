@@ -6,53 +6,63 @@
 #define IG_PROJET_SHELL_H
 
 #include "Color.h"
-#include "systems/System.h"
+#include "SdlException.h"
 #include "events.h"
 #include "gl/Camera.h"
 #include "gl/ClearColor.h"
-#include <SFML/Graphics.hpp>
+#include "systems/System.h"
+#include <SDL.h>
 #include <entt/entt.hpp>
 #include <glad.h>
 #include <memory>
 #include <optional>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 #include <utility>
 
 namespace shell {
-
     class Shell {
     public:
-        Shell() : Shell(800, 600) {}
+        void add_system(systems::FunctionSystem::system_t system);
 
-        Shell(size_t w, size_t h, const std::string &win_name = "Not Polyscope");
-
-        void add_system(systems::FunctionSystem::system_t system) {
-            add_system(new systems::FunctionSystem(std::move(system)));
+        template<typename T, typename... Args>
+        void emplace_system(Args &&...args) {
+            //            systems.template emplace(std::make_unique<T>(args...));
+            systems.emplace_back(std::make_unique<T>(args...));
         }
 
-
-        void add_system(systems::System *system) {
-            systems.emplace_back(system);
-        }
-
+        Shell();
+        ~Shell();
+        void init();
+        void add_system(systems::System *system) { systems.emplace_back(system); }
         [[noreturn]] void run();
 
-        decltype(auto) setup_default_environment() {
-            auto &context = registry.ctx();
-            context.emplace<gl::Camera>();
-            registry.ctx().insert_or_assign(gl::ClearColor{Color(0.1f, 0.1f, 0.1f)});
-            return context;
+        template<typename T>
+        entt::sink<T> &event() {
+            return registry.ctx().get<entt::dispatcher>().sink<T>();
         }
 
+        entt::registry::context &resources();
+        void setup_default_environment();
+
+        glm::vec2 window_size() const;
+        glm::vec2 viewport_size() const;
+
+        void swap_buffers() const;
+
         entt::registry registry;
+        bool should_close = false;
 
     private:
         void on_close_requested(events::Close event);
+        void ensure_init() const;
 
-        sf::Window window;
+        SDL_Window *window;
+        SDL_GLContext context;
         std::list<std::unique_ptr<systems::System>> systems;
         void poll_events(entt::dispatcher &dispatcher);
     };
-}// namespace shell
 
+}// namespace shell
 
 #endif//IG_PROJET_SHELL_H

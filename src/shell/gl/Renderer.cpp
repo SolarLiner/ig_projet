@@ -3,9 +3,7 @@
 //
 
 #include "Renderer.h"
-#include "../Color.h"
 #include "../UniformBindings.h"
-#include "../components/Light.h"
 #include "../components/PanOrbitCamera.h"
 #include "Camera.h"
 #include "ClearColor.h"
@@ -16,41 +14,19 @@
 
 static void set_size(GLint w, GLint h) { glViewport(0, 0, w, h); }
 static void set_size(unsigned int w, unsigned int h) { set_size((GLint) w, (GLint) h); }
-static void set_size(sf::Vector2u size) { set_size(size.x, size.y); }
 static void set_size(glm::vec2 size) { set_size((GLint) size.x, (GLint) size.y); }
 
-#ifdef DEBUG_OPENGL
-#include <iostream>
-#include <cstdarg>
-static void print_opengl_calls(const char *name, void *, int nargs, ...) {
-    va_list args;
-    va_start(args, nargs);
-    std::cout << "[DEBUG] OpenGL: " << name << "(";
-    for (int i = 0; i < nargs; ++i) {
-        int arg = va_arg(args, int);
-        if (i > 0) std::cout << ", ";
-        std::cout << arg;
-    }
-    std::cout << ")" << std::endl;
-}
-#endif
-
 namespace shell::gl {
-    Renderer::Renderer() {
+    void Renderer::handle_resize(events::Resize resize) { size_changed = resize.size; }
 
-#ifdef DEBUG_OPENGL
-        glad_set_pre_callback(print_opengl_calls);
-#endif
-    }
-
-    void Renderer::handle_resize(events::Resize resize) { size_changed = glm::vec2(resize.width, resize.height); }
-
-    void Renderer::before_run(const sf::Window &window, entt::registry &registry) {
+    void Renderer::before_run(Shell &shell) {
+        auto &registry = shell.registry;
         registry.ctx().get<entt::dispatcher>().sink<events::Resize>().connect<&Renderer::handle_resize>(*this);
         auto &camera = registry.ctx().get<Camera>();
-        auto size = window.getSize();
+        auto size = shell.viewport_size();
+//        render_ctx.set_active();
         set_size(size);
-        camera.resize(glm::vec2(size.x, size.y));
+        camera.resize(size);
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -62,10 +38,12 @@ namespace shell::gl {
         lights.bind_to(UniformBindings::Lights);
     }
 
-    void Renderer::operator()(const sf::Window &window, entt::registry &registry) {
+    void Renderer::execute(Shell &shell) {
+        Color clear_color;
+
+        auto &registry = shell.registry;
         auto &camera = registry.ctx().get<Camera>();
         auto &controller = registry.ctx().get<components::PanOrbitCamera>();
-        Color clear_color;
         if (registry.ctx().contains<ClearColor>()) clear_color = registry.ctx().get<ClearColor>().color;
         else
             clear_color = registry.ctx().insert_or_assign(ClearColor{Color::Black}).color;
@@ -101,6 +79,6 @@ namespace shell::gl {
             mesh.draw(registry.any_of<wireframe>(entity));
         }
 
-        const_cast<sf::Window &>(window).display();
+        shell.swap_buffers();
     }
 }// namespace shell::gl

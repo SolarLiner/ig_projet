@@ -11,6 +11,7 @@
     </libraryRoots>
     <excludeRoots>
       <file path="$PROJECT_DIR$/cmake-build-debug" />
+      <file path="$PROJECT_DIR$/cmake-build-debug-clang" />
       <file path="$PROJECT_DIR$/cmake-build-vscode" />
     </excludeRoots>
   </component>

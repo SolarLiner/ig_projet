@@ -5,7 +5,13 @@ set(CMAKE_CXX_STANDARD 20)
 
 include(FetchContent)
 
-# openmesh
+FetchContent_Declare(
+        SDL2
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+        GIT_TAG release-2.24.2https://github.com/libsdl-org/SDL.git
+        FIND_PACKAGE_ARGS
+        NAMES sdl2 SDL2 SDL
+)
 FetchContent_Declare(
         openmesh
         GIT_REPOSITORY https://gitlab.vci.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
@@ -22,21 +28,20 @@ FetchContent_Declare(
         NAMES glm GLM
 )
 FetchContent_Declare(
-        SFML
-        GIT_REPOSITORY https://github.com/SFML/SFML.git
-        GIT_TAG 2.5.1
-        FIND_PACKAGE_ARGS
-        NAMES SFML
-        COMPONENTS system window graphics
-)
-FetchContent_Declare(
         EnTT
         GIT_REPOSITORY https://github.com/skypjack/entt.git
         GIT_TAG v3.11.0
         FIND_PACKAGE_ARGS
         NAMES ENTT entt EnTT
 )
-FetchContent_MakeAvailable(openmesh glm SFML EnTT)
+FetchContent_Declare(
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v1.11.0
+        FIND_PACKAGE_ARGS
+        NAMES spdlog
+)
+FetchContent_MakeAvailable(openmesh glm EnTT SDL2 spdlog)
 
 add_subdirectory(lib)
 add_subdirectory(src)
