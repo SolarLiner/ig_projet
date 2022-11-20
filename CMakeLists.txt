@@ -41,7 +41,17 @@ FetchContent_Declare(
         FIND_PACKAGE_ARGS
         NAMES spdlog
 )
-FetchContent_MakeAvailable(openmesh glm EnTT SDL2 spdlog)
+FetchContent_Declare(
+        imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v1.89
+)
+FetchContent_MakeAvailable(openmesh glm EnTT SDL2 spdlog imgui)
+
+set(IMGUI_DIR ${CMAKE_BINARY_DIR}/_deps/imgui-src)
+add_library(imgui SHARED ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_demo.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_tables.cpp ${IMGUI_DIR}/imgui_widgets.cpp ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp)
+target_include_directories(imgui PUBLIC ${IMGUI_DIR} ${IMGUI_DIR}/backends)
+target_link_libraries(imgui PRIVATE SDL2::SDL2 glad)
 
 add_subdirectory(lib)
 add_subdirectory(src)

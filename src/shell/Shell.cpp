@@ -4,6 +4,9 @@
 
 #include "Shell.h"
 #include "components/Time.h"
+#include <imgui.h>
+#include <imgui_impl_opengl3.h>
+#include <imgui_impl_sdl.h>
 #include <SDL.h>
 #include <cstdarg>
 #include <entt/signal/fwd.hpp>
@@ -154,12 +157,17 @@ namespace shell {
         ensure_gl_attribute(SDL_GL_DOUBLEBUFFER, 1);
         ensure_gl_attribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
+        spdlog::debug("Loading OpenGL");
         SDL_GL_LoadLibrary(nullptr);
         context = SDL_GL_CreateContext(window);
         SDL_GL_MakeCurrent(window, context);
         gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress);
         glad_set_pre_callback(print_opengl_calls);
-        spdlog::debug("OpenGL loaded");
+
+        spdlog::debug("Loading ImGui");
+        ImGui::CreateContext();
+        ImGui_ImplSDL2_InitForOpenGL(window, context);
+        ImGui_ImplOpenGL3_Init();
 
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(gl_debug_msg_cb, nullptr);
@@ -192,6 +200,8 @@ namespace shell {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             spdlog::debug("SDL event {}", event.type);
+            ImGui_ImplSDL2_ProcessEvent(&event);
+            auto &io = ImGui::GetIO();
             switch (event.type) {
                 case SDL_QUIT:
                     dispatcher.enqueue<events::Close>();
@@ -209,17 +219,21 @@ namespace shell {
                     }
                     break;
                 case SDL_MOUSEMOTION:
+                    if(io.WantCaptureMouse) continue;
                     dispatcher.enqueue<events::MouseMove>(glm::vec2 {event.motion.x, event.motion.y}, glm::vec2 {event.motion.xrel, event.motion.yrel});
                     break;
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN:
+                    if(io.WantCaptureMouse) continue;
                     dispatcher.enqueue<events::MouseButton>(event.button.state == SDL_PRESSED, event.button.button, glm::vec2 {event.button.x, event.button.y});
                     break;
                 case SDL_MOUSEWHEEL:
+                    if(io.WantCaptureMouse) continue;
                     dispatcher.enqueue<events::ScrollWheel>(glm::vec2 {event.wheel.preciseX, event.wheel.preciseY});
                     break;
                 case SDL_KEYDOWN:
                 case SDL_KEYUP:
+                    if(io.WantCaptureKeyboard) continue;
                     dispatcher.enqueue<events::KeyboardEvent>(event.key.keysym, event.key.state == SDL_PRESSED);
                     break;
                 default:
@@ -262,4 +276,6 @@ namespace shell {
         return {w, h};
     }
     void Shell::swap_buffers() const { SDL_GL_SwapWindow(window); }
+    SDL_Window *Shell::raw_window() { return window; }
+    SDL_GLContext Shell::raw_context() { return context; }
 }// namespace shell

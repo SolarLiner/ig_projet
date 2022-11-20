@@ -38,7 +38,7 @@ namespace shell {
 
         template<typename T>
         entt::sink<T> &event() {
-            return registry.ctx().get<entt::dispatcher>().sink<T>();
+            return static_cast<entt::sink<T> &>(registry.ctx().get<entt::dispatcher>().sink<T>());
         }
 
         entt::registry::context &resources();
@@ -51,6 +51,10 @@ namespace shell {
 
         entt::registry registry;
         bool should_close = false;
+
+        SDL_Window *raw_window();
+
+        SDL_GLContext raw_context();
 
     private:
         void on_close_requested(events::Close event);

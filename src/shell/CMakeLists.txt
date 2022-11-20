@@ -2,5 +2,5 @@ add_library(shell STATIC Shell.cpp gl/Renderer.cpp Color.cpp components/PanOrbit
 target_link_libraries(shell
         PUBLIC
         SDL2::SDL2 EnTT::EnTT glm spdlog::spdlog
-        glow base
+        glow base imgui
 )

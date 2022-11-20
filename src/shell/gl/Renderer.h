@@ -21,6 +21,7 @@ namespace shell::gl {
 
     class Renderer : public shell::systems::System {
     public:
+        typedef std::function<void (Shell &)> ui_func_t;
         struct wireframe {};
         Renderer() = default;
         void before_run(Shell &) override;
