@@ -37,16 +37,16 @@ int main() {
     shell.emplace_system<systems::PanOrbitSystem>();
     shell.emplace_system<systems::EventListener<events::KeyboardEvent>>(quit_on_escape);
     shell.emplace_system<systems::OpenMeshUpload>("resources");
-    shell.add_system([laplace](Shell &shell) {
-        auto view = shell.registry.template view<base::Mesh>();
-        for (auto entity: view) { shell.registry.patch<base::Mesh>(entity, laplace); }
-    });
-
+    //    shell.add_system([laplace](Shell &shell) {
+    //        auto view = shell.registry.template view<base::Mesh>();
+    //        for (auto entity: view) { shell.registry.patch<base::Mesh>(entity, laplace); }
+    //    });
     shell.emplace_system<gl::Renderer>();
 
     auto mesh_entity = shell.registry.create();
     shell.registry.emplace<base::Mesh>(mesh_entity, base::Mesh::open("suzanne.obj"));
     shell.registry.emplace<Transform>(mesh_entity);
+    shell.registry.emplace<std::string>(mesh_entity, "Suzanne");
 
     auto ambient = shell.registry.create();
     shell.registry.emplace<components::Light>(ambient, components::Light::ambient(Color::White.with_alpha(0.1f)));
@@ -59,5 +59,17 @@ int main() {
     shell.registry.emplace<components::Light>(
             pt1, components::Light::point_light(vec3(1, -1, -1) * 2.f, Color::Green.with_alpha(3.0f)));
 
+    auto transforms_ui = shell.registry.create();
+    shell.registry.emplace<gl::Renderer::ui_func_t>(transforms_ui, [](Shell &shell) {
+        entt::entity selected_item{};
+        auto view = shell.registry.view<const std::string, const base::Mesh>();
+        ImGui::BeginGroup();
+        ImGui::Text("Transforms");
+        if (ImGui::BeginCombo("Mesh", nullptr)) {
+            for (auto [entity, label, _]: view.each()) { ImGui::Selectable(label.c_str(), entity == selected_item); }
+            ImGui::EndCombo();
+        }
+        ImGui::EndGroup();
+    });
     shell.run();
 }

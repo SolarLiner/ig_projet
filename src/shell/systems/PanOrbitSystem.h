@@ -8,7 +8,9 @@
 #include "../components/PanOrbitCamera.h"
 #include "../components/Time.h"
 #include "../events.h"
+#include "../gl/Renderer.h"
 #include "System.h"
+#include <imgui.h>
 
 namespace shell::systems {
     using components::PanOrbitCamera;
@@ -28,6 +30,20 @@ namespace shell::systems {
             dispatcher.sink<events::MouseButton>().connect<&PanOrbitSystem::handle_mouse_press>(*this);
             dispatcher.sink<events::ScrollWheel>().connect<&PanOrbitSystem::handle_scroll>(*this);
             window_size = shell.window_size();
+
+            auto ui_camera = shell.registry.create();
+            shell.registry.emplace<gl::Renderer::ui_func_t>(ui_camera, [](Shell &shell) {
+                auto &ctrl = shell.resources().get<components::PanOrbitCamera>();
+                ImGui::BeginGroup();
+                ImGui::Text("Camera");
+                ImGui::InputFloat3("Position", glm::value_ptr(ctrl.eye));
+                ImGui::InputFloat3("Target", glm::value_ptr(ctrl.target));
+                ImGui::Text("Sensitivities");
+                ImGui::InputFloat("Zoom", &ctrl.zoom_sensitivity);
+                ImGui::InputFloat("Pan", &ctrl.pan_sensitivity);
+                ImGui::InputFloat("Translate", &ctrl.translate_sensitivity);
+                ImGui::EndGroup();
+            });
         }
 
         void execute(Shell &shell) override {
@@ -58,21 +74,19 @@ namespace shell::systems {
             }
         }
 
-        void handle_mouse_move(events::MouseMove move) {
-            relative += move.relative;
-        }
+        void handle_mouse_move(events::MouseMove move) { relative += move.relative; }
 
         void handle_scroll(events::ScrollWheel wheel) { zoom_ticks += wheel.delta.y; }
 
         void handle_keys(events::KeyboardEvent event) {
             glm::vec2 right(10, 0), up(0, 10);
-            if(!event.pressed) return;
-            if(event.is(SDLK_LEFT)) relative -= right;
-            if(event.is(SDLK_RIGHT)) relative += right;
-            if(event.is(SDLK_UP)) relative += up;
-            if(event.is(SDLK_DOWN)) relative -= up;
-            if(event.is(SDLK_PAGEUP)) zoom_ticks += 1;
-            if(event.is(SDLK_PAGEDOWN)) zoom_ticks -= 1;
+            if (!event.pressed) return;
+            if (event.is(SDLK_LEFT)) relative -= right;
+            if (event.is(SDLK_RIGHT)) relative += right;
+            if (event.is(SDLK_UP)) relative += up;
+            if (event.is(SDLK_DOWN)) relative -= up;
+            if (event.is(SDLK_PAGEUP)) zoom_ticks += 1;
+            if (event.is(SDLK_PAGEDOWN)) zoom_ticks -= 1;
         }
 
         bool left_pressed = false, right_pressed = false;

@@ -11,6 +11,9 @@
 #include "ProgramRef.h"
 #include "Transform.h"
 #include <glow/shaders/Program.h>
+#include <imgui.h>
+#include <imgui_impl_opengl3.h>
+#include <imgui_impl_sdl.h>
 
 static void set_size(GLint w, GLint h) { glViewport(0, 0, w, h); }
 static void set_size(unsigned int w, unsigned int h) { set_size((GLint) w, (GLint) h); }
@@ -46,6 +49,7 @@ namespace shell::gl {
         else
             clear_color = registry.ctx().insert_or_assign(ClearColor{Color::Black}).color;
         auto drawables = registry.view<const Transform, const Mesh, const ProgramRef>();
+        auto uis = registry.view<const ui_func_t>();
 
         if (size_changed) {
             spdlog::debug("[Renderer] viewport new size {}x{}", size_changed->x, size_changed->y);
@@ -77,6 +81,15 @@ namespace shell::gl {
             program.set_uniform("model", model.matrix);
             mesh.draw(registry.any_of<wireframe>(entity));
         }
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+        ImGui::Begin("UI");
+        for (auto [_, ui]: uis.each()) { ui(shell); }
+        ImGui::End();
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         shell.swap_buffers();
     }
