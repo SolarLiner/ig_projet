@@ -14,6 +14,7 @@
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl.h>
+#include <glow/textures/Framebuffer.h>
 
 static void set_size(GLint w, GLint h) { glViewport(0, 0, w, h); }
 static void set_size(unsigned int w, unsigned int h) { set_size((GLint) w, (GLint) h); }
@@ -74,6 +75,7 @@ namespace shell::gl {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glow::textures::Framebuffer::DEFAULT_TARGET.bind();
         for (auto [entity, model, mesh, material]: drawables.each()) {
             const auto &program = material.get_program();
             program.use();

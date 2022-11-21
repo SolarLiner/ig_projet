@@ -1,4 +1,4 @@
-add_library(glow Shader.cpp Program.cpp)
+add_library(glow Shader.cpp Program.cpp Framebuffer.cpp)
 
 target_include_directories(glow PUBLIC include)
 
