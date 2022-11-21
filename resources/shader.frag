@@ -35,7 +35,7 @@ in Fragment {
 
 uniform mat4 model;
 
-const float roughness = 0.3;
+const float roughness = 0.45;
 const float metallic = 0;
 
 vec3 fresnel_shlick(float costheta, vec3 f0) {

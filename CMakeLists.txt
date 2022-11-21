@@ -46,7 +46,15 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/ocornut/imgui.git
         GIT_TAG v1.89
 )
-FetchContent_MakeAvailable(openmesh glm EnTT SDL2 spdlog imgui)
+FetchContent_Declare(
+        nfd
+        GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
+        GIT_TAG v1.0.0
+        FIND_PACKAGE_ARGS
+        NAMES nfd NFD nativefiledialog nativefiledialog-extended
+)
+set(NFD_PORTAL ON)
+FetchContent_MakeAvailable(openmesh glm EnTT SDL2 spdlog imgui nfd)
 
 set(IMGUI_DIR ${CMAKE_BINARY_DIR}/_deps/imgui-src)
 add_library(imgui SHARED ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_demo.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_tables.cpp ${IMGUI_DIR}/imgui_widgets.cpp ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp)

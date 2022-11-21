@@ -7,6 +7,8 @@
 
 #include "glm/vec2.hpp"
 
+#include <SDL.h>
+
 namespace shell::events {
     struct KeyboardEvent {
         SDL_Keysym key;
@@ -51,6 +53,6 @@ namespace shell::events {
     struct ScrollWheel {
         glm::vec2 delta;
     };
-}
+}// namespace shell::events
 
 #endif//IG_PROJET_EVENTS_H

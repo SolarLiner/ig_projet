@@ -27,7 +27,6 @@ namespace glow::shaders {
         glGetProgramiv(id, GL_LINK_STATUS, &status);
         return status == GL_TRUE;
     }
-
     std::string Program::info_log() const {
         GLint length;
         std::string log;
@@ -41,6 +40,7 @@ namespace glow::shaders {
     void Program::set_uniform_block(const std::string &name, size_t binding) const {
         set_uniform_block_at(glGetUniformBlockIndex(id, name.c_str()), binding);
     }
+
     void Program::use() const {
         ensure();
         glUseProgram(id);
@@ -57,7 +57,6 @@ namespace glow::shaders {
     void Program::set_uniform_at(GLint loc, glm::vec3 value) { glUniform3fv(loc, 1, glm::value_ptr(value)); }
 
     void Program::set_uniform_at(GLint loc, glm::vec4 value) { glUniform4fv(loc, 1, glm::value_ptr(value)); }
-
     void Program::set_uniform_at(GLint loc, glm::mat4 value) {
         glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
     }
