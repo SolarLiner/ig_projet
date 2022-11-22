@@ -7,7 +7,10 @@ layout(std140) uniform Camera {
 };
 uniform mat4 model;
 
+flat out uint vert_id;
+
 void main() {
     mat4 mvp = model * view * projection;
+    vert_id = uint(gl_VertexID);
     gl_Position = mvp * vec4(position, 1);
 }

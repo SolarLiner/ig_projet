@@ -118,6 +118,11 @@ int main() {
                 }
                 ImGui::TreePop();
             }
+            if(ImGui::Button("Delete")) {
+                shell.registry.remove<std::string>(*selected_entity);
+                shell.registry.remove<base::Mesh>(*selected_entity);
+                selected_entity.reset();
+            }
         }
         ImGui::End();
     });

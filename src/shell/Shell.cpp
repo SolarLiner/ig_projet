@@ -3,14 +3,16 @@
 //
 
 #include "Shell.h"
+
 #include "components/Time.h"
-#include <imgui.h>
-#include <imgui_impl_opengl3.h>
-#include <imgui_impl_sdl.h>
+
 #include <SDL.h>
 #include <cstdarg>
 #include <entt/signal/fwd.hpp>
 #include <glad.h>
+#include <imgui.h>
+#include <imgui_impl_opengl3.h>
+#include <imgui_impl_sdl.h>
 #include <iostream>
 #include <spdlog/fmt/ranges.h>
 #include <spdlog/spdlog.h>
@@ -191,7 +193,8 @@ namespace shell {
             dispatcher.update();
             time.last_frame = time.since_frame();
             time.frame = components::Time::now();
-            spdlog::info("frame {} ms\n\tpolling {} ms\n\tsystems {} ms", time.last_frame.count(), poll_time.count(), systems_time.count());
+            spdlog::info("frame {} ms\n\tpolling {} ms\n\tsystems {} ms", time.last_frame.count(), poll_time.count(),
+                         systems_time.count());
         }
         exit(0);
     }
@@ -207,33 +210,36 @@ namespace shell {
                     dispatcher.enqueue<events::Close>();
                     break;
                 case SDL_WINDOWEVENT:
-                    switch(event.window.event) {
+                    switch (event.window.event) {
                         case SDL_WINDOWEVENT_CLOSE:
                             should_close = true;
                             break;
                         case SDL_WINDOWEVENT_RESIZED:
                         case SDL_WINDOWEVENT_SIZE_CHANGED:
-                            dispatcher.enqueue<events::Resize>(glm::vec2 {event.window.data1, event.window.data2});
+                            dispatcher.enqueue<events::Resize>(glm::vec2{event.window.data1, event.window.data2});
                             break;
-                        default: break;
+                        default:
+                            break;
                     }
                     break;
                 case SDL_MOUSEMOTION:
-                    if(io.WantCaptureMouse) continue;
-                    dispatcher.enqueue<events::MouseMove>(glm::vec2 {event.motion.x, event.motion.y}, glm::vec2 {event.motion.xrel, event.motion.yrel});
+                    if (io.WantCaptureMouse) continue;
+                    dispatcher.enqueue<events::MouseMove>(glm::vec2{event.motion.x, event.motion.y},
+                                                          glm::vec2{event.motion.xrel, event.motion.yrel});
                     break;
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN:
-                    if(io.WantCaptureMouse) continue;
-                    dispatcher.enqueue<events::MouseButton>(event.button.state == SDL_PRESSED, event.button.button, glm::vec2 {event.button.x, event.button.y});
+                    if (io.WantCaptureMouse) continue;
+                    dispatcher.enqueue<events::MouseButton>(event.button.state == SDL_PRESSED, event.button.button,
+                                                            glm::vec2{event.button.x, event.button.y});
                     break;
                 case SDL_MOUSEWHEEL:
-                    if(io.WantCaptureMouse) continue;
-                    dispatcher.enqueue<events::ScrollWheel>(glm::vec2 {event.wheel.preciseX, event.wheel.preciseY});
+                    if (io.WantCaptureMouse) continue;
+                    dispatcher.enqueue<events::ScrollWheel>(glm::vec2{event.wheel.preciseX, event.wheel.preciseY});
                     break;
                 case SDL_KEYDOWN:
                 case SDL_KEYUP:
-                    if(io.WantCaptureKeyboard) continue;
+                    if (io.WantCaptureKeyboard) continue;
                     dispatcher.enqueue<events::KeyboardEvent>(event.key.keysym, event.key.state == SDL_PRESSED);
                     break;
                 default:
@@ -260,7 +266,7 @@ namespace shell {
 
         if (!window || !context) throw InitException();
     }
-    void Shell::add_system(const systems::FunctionSystem::system_t& system) {
+    void Shell::add_system(const systems::FunctionSystem::system_t &system) {
         emplace_system<systems::FunctionSystem>(system);
     }
 
@@ -278,4 +284,5 @@ namespace shell {
     void Shell::swap_buffers() const { SDL_GL_SwapWindow(window); }
     SDL_Window *Shell::raw_window() { return window; }
     SDL_GLContext Shell::raw_context() { return context; }
+
 }// namespace shell
