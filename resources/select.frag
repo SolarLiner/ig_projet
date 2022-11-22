@@ -2,8 +2,9 @@
 
 uniform uint object_id;
 
-out uint pick;
+flat in uint vert_id;
+out uvec2 pick;
 
 void main() {
-    pick = object_id;
+    pick = uvec2(object_id, vert_id);
 }

@@ -21,6 +21,7 @@ namespace shell::events {
 }// namespace shell::events
 namespace shell::gl {
     using namespace glow::shaders;
+    using namespace glow::textures;
     using systems::System;
     class PickingSystem : public System {
     public:
@@ -36,8 +37,9 @@ namespace shell::gl {
 
         Program program;
         std::optional<glm::vec2> do_pick = std::nullopt;
-        glow::textures::Texture<unsigned int, glow::textures::D2> pick_texture;
-        glow::textures::Framebuffer framebuffer;
+        Texture<std::array<uint32_t, 2>, D2> pick_texture;
+        Texture<depth<float>, D2> pick_depth;
+        Framebuffer framebuffer;
     };
 }// namespace shell::gl
 
