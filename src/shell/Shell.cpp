@@ -140,8 +140,8 @@ namespace shell {
         SdlException::ensure(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS));
         spdlog::debug("SDL initialized");
 
-        window = SDL_CreateWindow("Not Polyscope", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
-                                  SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+        window = SDL_CreateWindow("Not Polyscope", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
+                                  SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED);
         SdlException::ensure(window);
         spdlog::debug("Created SDL window {:x}", (size_t) window);
         int w, h;
@@ -193,7 +193,7 @@ namespace shell {
             dispatcher.update();
             time.last_frame = time.since_frame();
             time.frame = components::Time::now();
-            spdlog::info("frame {} ms\n\tpolling {} ms\n\tsystems {} ms", time.last_frame.count(), poll_time.count(),
+            spdlog::trace("frame {} ms\n\tpolling {} ms\n\tsystems {} ms", time.last_frame.count(), poll_time.count(),
                          systems_time.count());
         }
         exit(0);

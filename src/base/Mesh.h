@@ -8,16 +8,17 @@
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 
 namespace base {
-    class Traits: public OpenMesh::DefaultTraits {
+    class Traits : public OpenMesh::DefaultTraits {
     public:
 //        using Point = V;
 //        using Normal = V;
-        VertexAttributes(OpenMesh::Attributes::Status | OpenMesh::Attributes::Normal);
-        FaceAttributes(OpenMesh::Attributes::Status | OpenMesh::Attributes::Color | OpenMesh::Attributes::Normal);
+        VertexAttributes(OpenMesh::Attributes::Status | OpenMesh::Attributes::Normal | OpenMesh::Attributes::Color |
+                         OpenMesh::Attributes::TexCoord2D);
+        FaceAttributes(OpenMesh::Attributes::Status | OpenMesh::Attributes::Normal);
         EdgeAttributes(OpenMesh::Attributes::Status);
     };
 
-    class Mesh: public OpenMesh::TriMesh_ArrayKernelT<Traits> {
+    class Mesh : public OpenMesh::TriMesh_ArrayKernelT<Traits> {
     public:
         static constexpr bool in_place_delete = true;
         [[nodiscard]] static Mesh open(const std::string &filename);

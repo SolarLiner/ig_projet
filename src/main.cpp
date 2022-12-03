@@ -2,7 +2,6 @@
 #include "shell/Shell.h"
 #include "shell/events.h"
 #include "shell/gl/Camera.h"
-#include "shell/gl/PickingSystem.h"
 #include "shell/gl/Renderer.h"
 #include "shell/gl/Transform.h"
 #include "shell/systems/EventListener.h"
@@ -10,11 +9,11 @@
 #include "shell/systems/PanOrbitSystem.h"
 #include "shell/systems/System.h"
 #include "transforms/Laplace.h"
+#include "transforms/Deform.h"
 
 #include <filesystem>
 #include <nfd.hpp>
 #include <spdlog/cfg/env.h>
-#include <spdlog/spdlog.h>
 
 using namespace shell;
 using namespace shell::gl;
@@ -23,8 +22,14 @@ using glm::quat;
 using glm::vec3;
 using glm::vec4;
 
+static entt::entity selected_entity = entt::null;
+static size_t selected_vert = 0;
+
+
 void quit_on_escape(entt::registry &reg, events::KeyboardEvent event) {
-    if (event.is(SDLK_ESCAPE)) reg.ctx().template get<entt::dispatcher>().template enqueue<events::Close>();
+    if (event.is(SDLK_ESCAPE))
+        reg.ctx().template get<entt::dispatcher>().
+                template enqueue<events::Close>();
 }
 
 entt::entity add_ui(Shell &shell, gl::Renderer::ui_func_t ui) {
@@ -33,31 +38,32 @@ entt::entity add_ui(Shell &shell, gl::Renderer::ui_func_t ui) {
     return entity;
 }
 
-int main() {
+void open_mesh(Shell &shell, const std::filesystem::path &file) {
+    auto entity = shell.registry.create();
+    auto &mesh = shell.registry.emplace<base::Mesh>(entity, base::Mesh::open(file));
+    shell.registry.emplace<Transform>(entity);
+    shell.registry.emplace<std::string>(entity, file.filename().c_str());
+
+    mesh.reset_vertex_colors();
+
+    selected_entity = entity;
+}
+
+int main(int argc, char **argv) {
     spdlog::cfg::load_env_levels();
     transforms::Laplace laplace(0.5);
+    transforms::Deform deform{{0, 1, 0}, 0.5f};
     Shell shell;
     shell.init();
     shell.setup_default_environment();
     auto &camera = shell.resources().get<gl::Camera>();
-    camera.set_fov(0.7f);
+    camera.set_fov(0.8f);
     NFD_Init();
 
-    auto start = std::chrono::steady_clock::now();
     shell.emplace_system<systems::PanOrbitSystem>();
     shell.emplace_system<systems::EventListener<events::KeyboardEvent>>(quit_on_escape);
     shell.emplace_system<systems::OpenMeshUpload>("resources");
-    //    shell.add_system([laplace](Shell &shell) {
-    //        auto view = shell.registry.template view<base::Mesh>();
-    //        for (auto entity: view) { shell.registry.patch<base::Mesh>(entity, laplace); }
-    //    });
-    shell.emplace_system<gl::PickingSystem>("resources");
     shell.emplace_system<gl::Renderer>();
-
-    //    auto mesh_entity = shell.registry.create();
-    //    shell.registry.emplace<base::Mesh>(mesh_entity, base::Mesh::open("suzanne.obj"));
-    //    shell.registry.emplace<Transform>(mesh_entity);
-    //    shell.registry.emplace<std::string>(mesh_entity, "Suzanne");
 
     auto ambient = shell.registry.create();
     shell.registry.emplace<components::Light>(ambient, components::Light::ambient(Color::White.with_alpha(0.1f)));
@@ -75,15 +81,12 @@ int main() {
             if (ImGui::BeginMenu("File")) {
                 if (ImGui::MenuItem("Open")) {
                     nfdchar_t *out_path;
-                    nfdfilteritem_t items[1] = {{"Mesh files", "obj,off"}};
+                    nfdfilteritem_t items[1] = {{"Mesh files", "obj,off,stl"}};
                     auto result = NFD_OpenDialog(&out_path, items, 1, nullptr);
                     if (result == NFD_OKAY) {
                         std::filesystem::path file(out_path);
                         NFD_FreePath(out_path);
-                        auto entity = shell.registry.create();
-                        shell.registry.emplace<base::Mesh>(entity, base::Mesh::open(file));
-                        shell.registry.emplace<Transform>(entity);
-                        shell.registry.emplace<std::string>(entity, file.filename().c_str());
+                        open_mesh(shell, file);
                     }
                 }
                 ImGui::EndMenu();
@@ -91,11 +94,11 @@ int main() {
             ImGui::EndMainMenuBar();
         }
     });
-    add_ui(shell, [laplace](Shell &shell) {
-        static std::optional<entt::entity> selected_entity = std::nullopt;
+    add_ui(shell, [&laplace, &deform](Shell &shell) {
         auto view = shell.registry.view<const std::string, const base::Mesh, Transform>();
         auto selected_label =
-                selected_entity && view.contains(*selected_entity) ? view.get<const std::string>(*selected_entity) : "";
+                shell.registry.valid(selected_entity) && view.contains(selected_entity) ? view.get<const std::string>(selected_entity) : "";
+
         ImGui::Begin("Meshes");
         if (ImGui::BeginCombo("Mesh", selected_label.c_str())) {
             for (auto entity: view) {
@@ -106,26 +109,72 @@ int main() {
             }
             ImGui::EndCombo();
         }
-        if (selected_entity) {
+        if (shell.registry.valid(selected_entity)) {
             if (ImGui::TreeNode("Transforms")) {
-                 static int iterations = 10;
+                static int iterations = 10;
                 ImGui::Text("Laplace smoothing");
+                ImGui::SliderFloat("Alpha", &laplace.alpha, 0.f, 0.5f);
                 ImGui::InputInt("Iterations", &iterations);
                 if (ImGui::Button("Apply")) {
-                    shell.registry.patch<base::Mesh>(*selected_entity, [laplace](base::Mesh &mesh) {
+                    shell.registry.patch<base::Mesh>(selected_entity, [laplace](base::Mesh &mesh) {
                         for (int i = 0; i < iterations; ++i) laplace(mesh);
+                    });
+                }
+                ImGui::NewLine();
+
+                std::stringstream select_s;
+                select_s << "Vertex #" << selected_vert;
+                ImGui::Text("Deformation");
+                if (ImGui::BeginCombo("Vertex", select_s.str().c_str())) {
+                    const auto &mesh = view.get<const base::Mesh>(selected_entity);
+
+                    for (size_t i = 0; i < mesh.n_vertices(); ++i) {
+                        std::stringstream label_s;
+                        label_s << "Vertex #" << i;
+                        const bool is_selected = selected_vert == i;
+                        if (ImGui::Selectable(label_s.str().c_str(), is_selected)) selected_vert = i;
+                        if (is_selected) ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+                ImGui::InputFloat("Max distance", &deform.max_distance);
+                ImGui::InputFloat3("Direction", glm::value_ptr(deform.dir));
+                if (ImGui::Button("Deform")) {
+                    shell.registry.patch<base::Mesh>(selected_entity, [&deform](base::Mesh &mesh) {
+                        mesh.request_vertex_status();
+                        auto handle = mesh.vertex_handle(selected_vert);
+                        deform(mesh, handle);
+                        mesh.release_vertex_status();
+                    });
+                }
+                if (ImGui::Button("Preview")) {
+                    shell.registry.patch<base::Mesh>(selected_entity, [&deform](auto &mesh) {
+                        auto handle = mesh.vertex_handle(selected_vert);
+                        deform.preview_weight_in_color(mesh, handle);
                     });
                 }
                 ImGui::TreePop();
             }
-            if(ImGui::Button("Delete")) {
-                shell.registry.remove<std::string>(*selected_entity);
-                shell.registry.remove<base::Mesh>(*selected_entity);
-                selected_entity.reset();
+
+            ImGui::NewLine();
+            if (ImGui::Button("Reset vertex colors")) {
+                shell.registry.patch<base::Mesh>(selected_entity, [](auto &mesh) {
+                    mesh.reset_vertex_colors();
+                });
+            }
+            if (ImGui::Button("Delete")) {
+                shell.registry.remove<std::string>(selected_entity);
+                shell.registry.remove<base::Mesh>(selected_entity);
+                selected_entity = entt::null;
             }
         }
         ImGui::End();
     });
+
+    for (size_t i = 1; i < argc; ++i) {
+        std::filesystem::path path(argv[i]);
+        open_mesh(shell, path);
+    }
 
     shell.run();
 }

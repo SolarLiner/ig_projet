@@ -17,7 +17,6 @@ namespace transforms {
 
         void operator()(Mesh &mesh) const;
 
-    private:
         float alpha;
     };
 }
