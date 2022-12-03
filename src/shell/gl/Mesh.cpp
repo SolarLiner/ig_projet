@@ -8,6 +8,7 @@ namespace shell::gl {
 
     Vertex::Vertex(glm::vec3 vertex, glm::vec3 normal, glm::vec2 uv, Color color, float weight)
             : vertex(vertex), normal(normal), uv(uv), color(color), weight(weight) {}
+
     void Vertex::declare_vertex_attributes() {
         // Vertex
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) nullptr);
@@ -29,10 +30,12 @@ namespace shell::gl {
         glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, weight));
         glEnableVertexAttribArray(4);
     }
+
     Mesh::Mesh() {
         vao.bind_buffer(vbo);
         vao.bind_buffer(ibo);
     }
+
     void Mesh::update_from_openmesh(base::Mesh &mesh) {
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
@@ -81,6 +84,7 @@ namespace shell::gl {
         ibo.unbind();
         vbo.unbind();
     }
+
     void Mesh::draw(bool wireframe) const {
         vao.bind();
         if (ibo.size() == 0 || vbo.size() == 0) return;// Do nothing if no data has been uploaded yet

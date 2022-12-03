@@ -82,7 +82,7 @@ vec3 tonemap(vec3 x) {
 
 void main()
 {
-    vec3 albedo = vec3(1);
+    vec3 albedo = frag.vcolor;
     vec3 N = normalize(frag.normal);
     vec3 V = normalize(cam_pos - frag.pos);
     vec3 radiance_tot = vec3(0);
@@ -92,7 +92,7 @@ void main()
     for (int i = 0; i < min(num_lights, MAX_LIGHTS); ++i) {
         Light light = lights[i];
         if (light.kind == KIND_AMBIENT) {
-            radiance_tot += light.color.rgb * light.color.a;
+            radiance_tot += albedo * light.color.rgb * light.color.a;
             continue;
         }
         vec3 to_light = light.pos_dir - frag.pos;
