@@ -11,10 +11,14 @@
 namespace transforms {
     using glm::vec3;
     using base::Mesh;
+
     class Deform {
     public:
+        typedef std::function<float(float)> remap_t;
         vec3 dir;
         float max_distance;
+
+        remap_t remap{[](float x) { return 3 * x * x - 2 * x * x * x; }};
 
         void operator()(Mesh &mesh, Mesh::VertexHandle handle) const;
 

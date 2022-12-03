@@ -34,6 +34,7 @@ namespace transforms {
             vec3 vec(vpt[0], vpt[1], vpt[2]);
             auto f = glm::distance(handle_vec, vec);
             auto k = std::clamp(max_distance - f, 0.f, max_distance) / max_distance;
+            k = remap(k);
             mesh.property(weight_prop, v) = k;
         }
         mesh.release_vertex_status();
