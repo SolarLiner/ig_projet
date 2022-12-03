@@ -19,8 +19,12 @@ namespace base {
 
     class Mesh: public OpenMesh::TriMesh_ArrayKernelT<Traits> {
     public:
-        [[nodiscard]] static Mesh open(const std::string& filename);
-        void save(const std::string& filename) const;
+        static constexpr bool in_place_delete = true;
+        [[nodiscard]] static Mesh open(const std::string &filename);
+
+        void save(const std::string &filename) const;
+
+        void reset_vertex_colors();
     };
 }
 
