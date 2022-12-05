@@ -14,11 +14,6 @@ namespace shell::components {
     using glm::vec3;
     using glm::vec4;
 
-    static vec3 transform_point(mat4 transform, vec3 point) {
-        vec4 w = transform * vec4(point, 1);
-        return vec3(w) / w.w;
-    }
-
     class PanOrbitCamera {
     public:
         explicit PanOrbitCamera(vec3 eye = vec3(0, 1, 2), vec3 target = vec3(0))

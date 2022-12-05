@@ -52,7 +52,7 @@ void open_mesh(Shell &shell, const std::filesystem::path &file) {
 int main(int argc, char **argv) {
     spdlog::cfg::load_env_levels();
     transforms::Laplace laplace(0.5);
-    transforms::Deform deform{{0, 1, 0}, 0.5f};
+    transforms::Deform deform{{0, 0, 1}, 0.5f};
     Shell shell;
     shell.init();
     shell.setup_default_environment();
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
             if (ImGui::BeginMenu("File")) {
                 if (ImGui::MenuItem("Open")) {
                     nfdchar_t *out_path;
-                    nfdfilteritem_t items[1] = {{"Mesh files", "obj,off,stl"}};
+                    nfdfilteritem_t items[1] = {{"Mesh files", "obj,off,stl,ply"}};
                     auto result = NFD_OpenDialog(&out_path, items, 1, nullptr);
                     if (result == NFD_OKAY) {
                         std::filesystem::path file(out_path);
@@ -95,12 +95,13 @@ int main(int argc, char **argv) {
         }
     });
     add_ui(shell, [&laplace, &deform](Shell &shell) {
-        auto view = shell.registry.view<const std::string, const base::Mesh, Transform>();
+        auto view = shell.registry.view<std::string, const base::Mesh, Transform>();
         auto selected_label =
-                shell.registry.valid(selected_entity) && view.contains(selected_entity) ? view.get<const std::string>(selected_entity) : "";
+                shell.registry.valid(selected_entity) && view.contains(selected_entity) ? view.get<const std::string>(
+                        selected_entity) : "";
 
-        ImGui::Begin("Meshes");
-        if (ImGui::BeginCombo("Mesh", selected_label.c_str())) {
+        ImGui::Begin("Object menu");
+        if (ImGui::BeginCombo("Object", selected_label.c_str())) {
             for (auto entity: view) {
                 auto &label = view.get<const std::string>(entity);
                 const bool is_selected = selected_entity == entity;
@@ -110,49 +111,65 @@ int main(int argc, char **argv) {
             ImGui::EndCombo();
         }
         if (shell.registry.valid(selected_entity)) {
-            if (ImGui::TreeNode("Transforms")) {
-                static int iterations = 10;
-                ImGui::Text("Laplace smoothing");
-                ImGui::SliderFloat("Alpha", &laplace.alpha, 0.f, 0.5f);
-                ImGui::InputInt("Iterations", &iterations);
-                if (ImGui::Button("Apply")) {
-                    shell.registry.patch<base::Mesh>(selected_entity, [laplace](base::Mesh &mesh) {
-                        for (int i = 0; i < iterations; ++i) laplace(mesh);
-                    });
-                }
-                ImGui::NewLine();
-
-                std::stringstream select_s;
-                select_s << "Vertex #" << selected_vert;
-                ImGui::Text("Deformation");
-                if (ImGui::BeginCombo("Vertex", select_s.str().c_str())) {
-                    const auto &mesh = view.get<const base::Mesh>(selected_entity);
-
-                    for (size_t i = 0; i < mesh.n_vertices(); ++i) {
-                        std::stringstream label_s;
-                        label_s << "Vertex #" << i;
-                        const bool is_selected = selected_vert == i;
-                        if (ImGui::Selectable(label_s.str().c_str(), is_selected)) selected_vert = i;
-                        if (is_selected) ImGui::SetItemDefaultFocus();
+            auto &label = view.get<std::string>(selected_entity);
+            ImGui::InputText("Name", label.data(), label.size());
+            if (ImGui::TreeNode("Move")) {
+                auto &model = view.get<Transform>(selected_entity).matrix;
+                ImGui::InputFloat3("Position", glm::value_ptr(model) + 12);
+                ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Operators")) {
+                if (ImGui::BeginTabBar("operators")) {
+                    if (ImGui::BeginTabItem("Laplace smoothing")) {
+                        static int iterations = 10;
+                        ImGui::SliderFloat("Alpha", &laplace.alpha, 0.f, 0.5f);
+                        ImGui::InputInt("Iterations", &iterations);
+                        if (ImGui::Button("Apply")) {
+                            shell.registry.patch<base::Mesh>(selected_entity, [laplace](base::Mesh &mesh) {
+                                for (int i = 0; i < iterations; ++i) laplace(mesh);
+                            });
+                        }
+                        ImGui::EndTabItem();
                     }
-                    ImGui::EndCombo();
+
+                    if (ImGui::BeginTabItem("Deformation")) {
+                        std::stringstream select_s;
+                        select_s << "Vertex #" << selected_vert;
+                        ImGui::Text("Deformation");
+                        if (ImGui::BeginCombo("Vertex", select_s.str().c_str())) {
+                            const auto &mesh = view.get<const base::Mesh>(selected_entity);
+
+                            for (size_t i = 0; i < mesh.n_vertices(); ++i) {
+                                std::stringstream label_s;
+                                label_s << "Vertex #" << i;
+                                const bool is_selected = selected_vert == i;
+                                if (ImGui::Selectable(label_s.str().c_str(), is_selected)) selected_vert = i;
+                                if (is_selected) ImGui::SetItemDefaultFocus();
+                            }
+                            ImGui::EndCombo();
+                        }
+                        ImGui::InputFloat("Max distance", &deform.max_distance);
+                        ImGui::InputFloat3("Direction", glm::value_ptr(deform.dir));
+                        if (ImGui::Button("Preview")) {
+                            shell.registry.patch<base::Mesh>(selected_entity, [&deform](auto &mesh) {
+                                auto handle = mesh.vertex_handle(selected_vert);
+                                deform.preview_weight_in_color(mesh, handle);
+                            });
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Deform")) {
+                            shell.registry.patch<base::Mesh>(selected_entity, [&deform](base::Mesh &mesh) {
+                                mesh.request_vertex_status();
+                                auto handle = mesh.vertex_handle(selected_vert);
+                                deform(mesh, handle);
+                                mesh.release_vertex_status();
+                            });
+                        }
+                        ImGui::EndTabItem();
+                    }
+                    ImGui::EndTabBar();
                 }
-                ImGui::InputFloat("Max distance", &deform.max_distance);
-                ImGui::InputFloat3("Direction", glm::value_ptr(deform.dir));
-                if (ImGui::Button("Deform")) {
-                    shell.registry.patch<base::Mesh>(selected_entity, [&deform](base::Mesh &mesh) {
-                        mesh.request_vertex_status();
-                        auto handle = mesh.vertex_handle(selected_vert);
-                        deform(mesh, handle);
-                        mesh.release_vertex_status();
-                    });
-                }
-                if (ImGui::Button("Preview")) {
-                    shell.registry.patch<base::Mesh>(selected_entity, [&deform](auto &mesh) {
-                        auto handle = mesh.vertex_handle(selected_vert);
-                        deform.preview_weight_in_color(mesh, handle);
-                    });
-                }
+
                 ImGui::TreePop();
             }
 
@@ -163,8 +180,7 @@ int main(int argc, char **argv) {
                 });
             }
             if (ImGui::Button("Delete")) {
-                shell.registry.remove<std::string>(selected_entity);
-                shell.registry.remove<base::Mesh>(selected_entity);
+                shell.registry.destroy(selected_entity);
                 selected_entity = entt::null;
             }
         }

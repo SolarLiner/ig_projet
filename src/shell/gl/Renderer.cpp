@@ -38,6 +38,9 @@ namespace shell::gl {
         glFrontFace(GL_CCW);
 
         lights.bind_to(UniformBindings::Lights);
+
+        auto &io = ImGui::GetIO();
+        io.Fonts->AddFontFromFileTTF("resources/Inconsolata-Regular.ttf", 14);
     }
 
     void Renderer::execute(Shell &shell) {
