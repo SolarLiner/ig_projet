@@ -1,2 +1,2 @@
-add_library(transforms Laplace.cpp Laplace.h)
-target_link_libraries(transforms OpenMeshCore base)
+add_library(transforms STATIC Laplace.cpp Deform.cpp Deform.h)
+target_link_libraries(transforms PUBLIC OpenMeshCore base PRIVATE glm)

@@ -12,15 +12,12 @@ using namespace base;
 namespace transforms {
     class Laplace {
     public:
-        explicit Laplace(V::value_type alpha);
+        explicit Laplace(float alpha);
         Laplace(): alpha(0.5) {}
 
-        Mesh smoothen(const Mesh &input) const;
+        void operator()(Mesh &mesh) const;
 
-        void smoothen(Mesh &mesh) const;
-
-    private:
-        V::value_type alpha;
+        float alpha;
     };
 }
 
