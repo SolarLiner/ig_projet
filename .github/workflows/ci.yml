@@ -22,7 +22,7 @@ jobs:
             os-release: linux
           - os: windows-latest
             os-release: win
-            extra-cmake-flags: -DCMAKE_CXX_FLAGS=-D_USE_MATH_DEFINES
+            extra-cmake-flags: -DCMAKE_CXX_FLAGS=-D_USE_MATH_DEFINES -G"NMake Makefiles"
           - os: macos-latest
             os-release: osx
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
@@ -39,6 +39,14 @@ jobs:
         sudo apt-get update -y -qq
         sudo apt-get install libsdl2-dev libgtk-3-dev
 
+    - name: Cache
+      uses: actions/cache@v3.2.0-beta.1
+      with:
+        # A list of files, directories, and wildcard patterns to cache and restore
+        path: ${{ github.workspace }}/build
+        # An explicit key for restoring and saving the cache
+        key: build-${{ matrix.os }}
+        
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -48,14 +56,6 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-    - name: Cache
-      uses: actions/cache@v3.2.0-beta.1
-      with:
-        # A list of files, directories, and wildcard patterns to cache and restore
-        path: ${{ github.workspace }}/build
-        # An explicit key for restoring and saving the cache
-        key: build-${{ matrix.os }}
-        
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.1
       with:
