@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(ig_projet)
+project(ig_projet CXX C OBJC)
 
 set(CMAKE_CXX_STANDARD 20)
 
