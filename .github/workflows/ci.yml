@@ -22,7 +22,7 @@ jobs:
             os-release: linux
           - os: windows-latest
             os-release: win
-            extra-cmake-flags: -DCXX_COMPILE_FLAGS=_USE_MATH_DEFINES
+            extra-cmake-flags: -DCMAKE_CXX_FLAGS=_USE_MATH_DEFINES
           - os: macos-latest
             os-release: osx
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
