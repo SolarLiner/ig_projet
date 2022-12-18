@@ -123,7 +123,7 @@ void APIENTRY gl_debug_msg_cb(GLenum source, GLenum type, GLuint, GLenum severit
 namespace shell {
     Shell::Shell() : window(nullptr), context(nullptr) { registry.ctx().emplace<entt::dispatcher>(); }
 
-    static constexpr void ensure_gl_attribute(SDL_GLattr attrib, int value) {
+    static void ensure_gl_attribute(SDL_GLattr attrib, int value) {
         SdlException::ensure(SDL_GL_SetAttribute(attrib, value));
     }
 
